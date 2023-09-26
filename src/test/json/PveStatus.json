@@ -1,0 +1,44 @@
+{
+  "data": {
+    "pveversion": "pve-manager/7.3-4/d69b70d4",
+    "wait": 0,
+    "memory": {
+      "total": 338068451328,
+      "used": 166310285312,
+      "free": 171758166016
+    },
+    "ksm": {
+      "shared": 71270338560
+    },
+    "swap": {
+      "total": 8589930496,
+      "used": 5774213120,
+      "free": 2815717376
+    },
+    "idle": 0,
+    "rootfs": {
+      "avail": 93876420608,
+      "total": 226702098432,
+      "used": 122870366208,
+      "free": 103831732224
+    },
+    "cpu": 0,
+    "loadavg": [
+      "13.20",
+      "11.97",
+      "12.01"
+    ],
+    "uptime": 2509635,
+    "cpuinfo": {
+      "cores": 16,
+      "cpus": 32,
+      "flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology nonstop_tsc cpuid aperfmperf pni pclmulqdq dtes64 monitor ds_cpl vmx smx est tm2 ssse3 cx16 xtpr pdcm pcid dca sse4_1 sse4_2 x2apic popcnt tsc_deadline_timer aes xsave avx f16c rdrand lahf_lm cpuid_fault epb pti intel_ppin ssbd ibrs ibpb stibp tpr_shadow vnmi flexpriority ept vpid fsgsbase smep erms xsaveopt dtherm ida arat pln pts md_clear flush_l1d",
+      "model": "Intel(R) Xeon(R) CPU E5-2667 v2 @ 3.30GHz",
+      "sockets": 2,
+      "user_hz": 100,
+      "hvm": "1",
+      "mhz": "3291.729"
+    },
+    "kversion": "Linux 5.15.83-1-pve #1 SMP PVE 5.15.83-1 (2022-12-15T00:00Z)"
+  }
+}
