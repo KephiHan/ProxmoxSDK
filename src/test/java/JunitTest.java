@@ -13,10 +13,10 @@ public class JunitTest {
 
     public JunitTest() throws IOException {
         proxmoxClient = new ProxmoxClient(
-                "192.168.77.7",
+                "10.0.16.8",
                 8006,
                 "root",
-                "BayMax10281028"
+                "password"
         );
     }
 
@@ -29,10 +29,10 @@ public class JunitTest {
     @Test
     public void getVersionTest() throws IOException {
         ProxmoxClient proxmoxClient = new ProxmoxClient(
-                "192.168.77.7",
+                "10.0.16.8",
                 8006,
                 "root",
-                "BayMax102810281"
+                "password1"
         );
         System.out.println(proxmoxClient.getProxmoxVersion("pve-e5"));
     }
@@ -40,10 +40,10 @@ public class JunitTest {
     @Test
     public void wrongCookieTest() {
 //        ProxmoxClient proxmoxClient = new ProxmoxClient(
-//                "192.168.77.7",
+//                "10.0.16.8",
 //                8006,
 //                "root",
-//                "BayMax10281028"
+//                "password"
 //        );
 //        System.out.println(proxmoxClient.getProxmoxVersion("pve-e5"));
 //
@@ -60,7 +60,7 @@ public class JunitTest {
         ProxmoxClient proxmoxClient_new = new ProxmoxClient(
                 "123",
                 "456",
-                "192.168.77.7",
+                "10.0.16.8",
                 8006
         );
 
@@ -85,7 +85,7 @@ public class JunitTest {
         ProxmoxClient proxmoxClient_new = new ProxmoxClient(
                 "123",
                 "456",
-                "192.168.77.7",
+                "10.0.16.8",
                 8006
         );
         System.out.println(proxmoxClient_new.checkCookieValid());
