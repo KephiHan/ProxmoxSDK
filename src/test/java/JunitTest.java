@@ -1,22 +1,102 @@
+import it.corsinvest.proxmoxve.api.PveClient;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 
 public class JunitTest {
     
-    private ProxmoxClient proxmoxClient;
+    private final ProxmoxClient proxmoxClient
+//            = null;
+            = new ProxmoxClient(
+            "192.168.77.7",
+            8006,
+            "root",
+            "BayMax10281028"
+    );
 
     public JunitTest() throws IOException {
-        proxmoxClient = new ProxmoxClient(
-                "10.0.16.8",
-                8006,
+    }
+
+    @Test
+    public void commonTest() throws IOException {
+        PveClient pveClient = new PveClient(
+                "192.168.77.7",
+                8006
+        );
+        pveClient.login(
                 "root",
-                "password"
+                "BayMax10281028"
+        );
+        System.out.println(
+                pveClient.getNodes().get("pve-e5")
+                        .getQemu().get(501)
+                        .getFirewall().getIpset()
+                        .get("ipfilter-net0").toString()
+        );
+    }
+
+    @Test
+    public void ipCidrList() throws IOException {
+        proxmoxClient.getVmIpCidrList("pve-e5", 501, "ipfilter-net0")
+                .forEach(System.out::println);
+    }
+
+    @Test
+    public void ipSetList() throws IOException {
+        proxmoxClient.getVmIpSetList("pve-e5",501)
+                .forEach(System.out::println);
+    }
+
+    @Test
+    public void createIpSetList() throws IOException {
+        System.out.println(
+                proxmoxClient.createVmIpSet(
+                        "pve-e5",
+                        501,
+                        "ipfilter-net2",
+                        "这是一个备注"
+                )
+        );
+    }
+
+    @Test
+    public void deleteIpSetTest() throws IOException {
+        System.out.println(
+                proxmoxClient.deleteVmIpSet(
+                        "pve-e5",
+                        501,
+                        "ipfilter-net2"
+                )
+        );
+    }
+
+    @Test
+    public void createVmIpCidr() throws IOException {
+        System.out.println(
+                proxmoxClient.createVmIpCidr(
+                        "pve-e5",
+                        501,
+                        "ipfilter-net1",
+                        "10.1.0.98/24",
+                        "备注123",
+                        false
+                )
+        );
+    }
+
+    @Test
+    public void deleteVmIpCidr() throws IOException {
+        System.out.println(
+                proxmoxClient.deleteVmIpCidr(
+                        "pve-e5",
+                        501,
+                        "ipfilter-net1",
+                        "10.1.0.0/24"
+                )
         );
     }
 
@@ -28,12 +108,6 @@ public class JunitTest {
 
     @Test
     public void getVersionTest() throws IOException {
-        ProxmoxClient proxmoxClient = new ProxmoxClient(
-                "10.0.16.8",
-                8006,
-                "root",
-                "password1"
-        );
         System.out.println(proxmoxClient.getProxmoxVersion("pve-e5"));
     }
 

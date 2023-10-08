@@ -571,20 +571,119 @@ public class ProxmoxClient {
                 .deleteRole().isSuccessStatusCode();
     }
 
-//    /**
-//     * 获取角色
-//     * @param roleId Role名称
-//     * @return UserRole
-//     * @throws IOException ex
-//     */
-//    public UserRole getUserRole(String roleId) throws IOException {
-//        PveResult pveResult = pveClient.getAccess().getRoles()
-//                .get(roleId).readRole();
-//        return objectMapper.readValue(
-//                pveResult.getResponse().get("data").toString(),
-//                new TypeReference<UserRole>() {}
-//        );
-//    }
+    /**
+     * 获取VM IpSet列表
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @return IpSet列表
+     * @throws IOException ex
+     */
+    public List<IpSet> getVmIpSetList(String nodeName, int vmid) throws IOException {
+        return objectMapper.readValue(
+                pveClient.getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getFirewall().getIpset()
+                        .ipsetIndex().getResponse()
+                        .getJSONArray("data").toString(),
+                new TypeReference<List<IpSet>>() {}
+        );
+    }
+
+    /**
+     * 创建VM IpSet
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @param ipSetName IpSet名称
+     * @param comment 备注
+     * @return 成功？
+     * @throws IOException ex
+     */
+    public boolean createVmIpSet(String nodeName, int vmid, String ipSetName, String comment) throws IOException {
+        return pveClient.getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getFirewall().getIpset()
+                .createIpset(
+                        ipSetName,
+                        comment,
+                        null,
+                        null
+                ).isSuccessStatusCode();
+    }
+
+    /**
+     * 删除VM IpSet
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @param ipSetName IpSet名称
+     * @return 成功？
+     * @throws IOException ex
+     */
+    public boolean deleteVmIpSet(String nodeName, int vmid, String ipSetName) throws IOException {
+        return pveClient.getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getFirewall().getIpset()
+                .get(ipSetName).deleteIpset().isSuccessStatusCode();
+    }
+
+    /**
+     * 获取VM IpSet Ip/Cidr列表
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @param ipSetName IpSet名称
+     * @return IpCidr列表
+     * @throws IOException ex
+     */
+    public List<IpCidr> getVmIpCidrList(String nodeName, int vmid, String ipSetName) throws IOException {
+        return objectMapper.readValue(
+                pveClient.getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getFirewall().getIpset()
+                        .get(ipSetName).getIpset()
+                        .getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<IpCidr>>() {}
+        );
+    }
+
+    /**
+     * 创建VM IpSet IpCidr
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @param ipSetName IpSet名称
+     * @param cidr ip地址或者网段CIDR
+     * @param comment 备注
+     * @param noMatch
+     * @return 成功？
+     * @throws IOException ex
+     */
+    public boolean createVmIpCidr(String nodeName, int vmid, String ipSetName, String cidr, String comment, boolean noMatch) throws IOException {
+        return pveClient.getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getFirewall().getIpset()
+                .get(ipSetName).createIp(
+                        cidr,
+                        comment,
+                        noMatch
+                ).isSuccessStatusCode();
+    }
+
+    /**
+     * 删除VM IpSet IpCidr
+     * @param nodeName 节点
+     * @param vmid vmid
+     * @param ipSetName IpSet名称
+     * @param cidr ip地址或者网段CIDR
+     * @return 成功？
+     * @throws IOException ex
+     */
+    public boolean deleteVmIpCidr(String nodeName, int vmid, String ipSetName, String cidr) throws IOException {
+        return pveClient.getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getFirewall().getIpset()
+                .get(ipSetName).get(cidr)
+                .removeIp().isSuccessStatusCode();
+    }
+
+
 
     //////////////////////////////////////////
     //                                      //
