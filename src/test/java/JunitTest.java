@@ -15,7 +15,7 @@ public class JunitTest {
             "192.168.77.7",
             8006,
             "root",
-            "BayMax10281028"
+            "password"
     );
 
     public JunitTest() throws IOException {
@@ -29,7 +29,7 @@ public class JunitTest {
         );
         pveClient.login(
                 "root",
-                "BayMax10281028"
+                "password"
         );
         System.out.println(
                 pveClient.getNodes().get("pve-e5")
