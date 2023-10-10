@@ -2,13 +2,16 @@ import it.corsinvest.proxmoxve.api.PveClient;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
+import net.dabaiyun.proxmoxsdk.enums.NetCardType;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class JunitTest {
-    
+
     private final ProxmoxClient proxmoxClient
 //            = null;
             = new ProxmoxClient(
@@ -40,6 +43,51 @@ public class JunitTest {
     }
 
     @Test
+    public void urlEncoderTest() {
+        String net0config = "virtio,bridge=vmbr2";
+        String b = URLEncoder.encode(net0config, StandardCharsets.UTF_8);
+        System.out.println(b);
+    }
+
+    @Test
+    public void setVmNetCard() throws IOException {
+        System.out.println(
+//                proxmoxClient.setVmNetCard(
+//                        "pve-e5",
+//                        501,
+//                        1,
+//                        NetCardType.VirtIo,
+//                        "8E:51:E6:11:61:44",
+//                        "vmbr0",
+//                        true,
+//                        true,
+//                        5,
+//                        1,
+//                        0,
+//                        1
+//                )
+                proxmoxClient.setVmNetCard(
+                        "pve-e5",
+                        501,
+                        4,
+                        NetCardType.VirtIo,
+                        "vmbr0"
+                )
+        );
+    }
+
+    @Test
+    public void unlinkHardwareTest() throws IOException {
+        System.out.println(
+                proxmoxClient.unlinkHardware(
+                        "pve-e5",
+                        501,
+                        "unused0"
+                )
+        );
+    }
+
+    @Test
     public void ipCidrList() throws IOException {
         proxmoxClient.getVmIpCidrList("pve-e5", 501, "ipfilter-net0")
                 .forEach(System.out::println);
@@ -47,7 +95,7 @@ public class JunitTest {
 
     @Test
     public void ipSetList() throws IOException {
-        proxmoxClient.getVmIpSetList("pve-e5",501)
+        proxmoxClient.getVmIpSetList("pve-e5", 501)
                 .forEach(System.out::println);
     }
 
@@ -155,7 +203,7 @@ public class JunitTest {
     }
 
     @Test
-    public void checkAuthValid(){
+    public void checkAuthValid() {
         ProxmoxClient proxmoxClient_new = new ProxmoxClient(
                 "123",
                 "456",
@@ -210,42 +258,42 @@ public class JunitTest {
 //                proxmoxClient.getUserRole("DABAIYUNUser")
 //        );
 //    }
-    
+
     @Test
     public void getUserRoleList() throws IOException {
         List<UserRole> userRoleList = proxmoxClient.getUserRoleList();
         Map<String, Map<String, Set<String>>> roleMap = new HashMap<>();
         for (UserRole userRole : userRoleList) {
-            if(userRole.getPrivs().equals("")){
+            if (userRole.getPrivs().equals("")) {
                 continue;
             }
             String[] roleNames = userRole.getPrivs().split(",");
             for (String roleName : roleNames) {
                 String[] strings = roleName.split("\\.");
 
-                if(strings.length == 2){
+                if (strings.length == 2) {
                     String group = strings[0];
                     String role = strings[1];
-                    if(roleMap.containsKey(group)){
+                    if (roleMap.containsKey(group)) {
                         roleMap.get(group).put(role, null);
-                    }else{
+                    } else {
                         Map<String, Set<String>> secondMap = new HashMap<>();
                         secondMap.put(role, null);
                         roleMap.put(group, secondMap);
                     }
-                }else if (strings.length == 3){
+                } else if (strings.length == 3) {
                     String group = strings[0];
                     String role = strings[1];
                     String subRole = strings[2];
                     if (roleMap.containsKey(group)) {
-                        if(roleMap.get(group).containsKey(role) && roleMap.get(group).get(role) != null){
+                        if (roleMap.get(group).containsKey(role) && roleMap.get(group).get(role) != null) {
                             roleMap.get(group).get(role).add(subRole);
-                        }else{
+                        } else {
                             Set<String> subRoleSet = new HashSet<>();
                             subRoleSet.add(subRole);
                             roleMap.get(group).put(role, subRoleSet);
                         }
-                    }else{
+                    } else {
                         Map<String, Set<String>> secondMap = new HashMap<>();
                         Set<String> subRoleSet = new HashSet<>();
                         subRoleSet.add(subRole);
@@ -263,7 +311,7 @@ public class JunitTest {
                 Set<String> subRoleSet = secondMap.get(role);
                 if (subRoleSet == null) {
                     System.out.println("  " + role + ",");
-                }else{
+                } else {
                     System.out.println("  " + role + ":");
                     for (String subRole : subRoleSet) {
                         System.out.println("    " + subRole + ",");
@@ -272,18 +320,18 @@ public class JunitTest {
             }
         }
 
-        for (String group : roleMap.keySet()){
+        for (String group : roleMap.keySet()) {
             println("public enum " + group + " {");
 
             Map<String, Set<String>> secondMap = roleMap.get(group);
-            for (String role : secondMap.keySet()){
+            for (String role : secondMap.keySet()) {
                 Set<String> subRoleSet = secondMap.get(role);
                 if (subRoleSet == null) {
                     println(role + "(\"" + group + "." + role + "\")" + ",");
-                }else{
+                } else {
                     println("public enum " + role + " {");
                     for (String subRole : subRoleSet) {
-                        println(subRole + "(\"" + group + "." + role +  "." + subRole + "\")" + ",");
+                        println(subRole + "(\"" + group + "." + role + "." + subRole + "\")" + ",");
                     }
                     println("}");
                 }
@@ -294,11 +342,11 @@ public class JunitTest {
 
     }
 
-    private void print(String s){
+    private void print(String s) {
         System.out.print(s);
     }
 
-    private void println(String s){
+    private void println(String s) {
         System.out.println(s);
     }
 }

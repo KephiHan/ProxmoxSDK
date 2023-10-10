@@ -6,11 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.entity.*;
+import net.dabaiyun.proxmoxsdk.enums.NetCardType;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class ProxmoxClient {
 
@@ -454,21 +455,6 @@ public class ProxmoxClient {
     }
 
     /**
-     * 卸载VM虚拟光驱
-     *
-     * @param nodeName 节点
-     * @param vmid     VMID
-     * @return success
-     */
-    public boolean unlinkVMCDROM(String nodeName, int vmid) throws IOException {
-        PveResult pveResult = pveClient
-                .getNodes().get(nodeName)
-                .getQemu().get(vmid)
-                .getUnlink().unlink("ide2");
-        return pveResult.isSuccessStatusCode();
-    }
-
-    /**
      * 设置VM的os类型
      *
      * @param nodeName  节点
@@ -504,6 +490,111 @@ public class ProxmoxClient {
                         null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         name, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * VM设置网卡 快速设置默认值
+     * @param nodeName      节点
+     * @param vmid          VMID
+     * @param netN             网卡序号，从0开始，如第二张网卡为1
+     * @param netCardType   网卡类型
+     * @param bridgeName    网桥
+     * @return 成功？
+     */
+    public boolean setVmNetCard(
+            String nodeName,
+            int vmid,
+            int netN,
+            NetCardType netCardType,
+            String bridgeName
+            ) throws IOException {
+        return this.setVmNetCard(
+                nodeName,
+                vmid,
+                netN,
+                netCardType,
+                null,
+                bridgeName,
+                false,
+                false,
+                0,
+                0,
+                0,
+                0
+        );
+    }
+
+    /**
+     * VM设置网卡
+     * @param nodeName      节点
+     * @param vmid          VMID
+     * @param netN             网卡序号，从0开始，如第二张网卡为1
+     * @param netCardType   网卡类型
+     * @param mac           MAC地址
+     * @param bridgeName    网桥
+     * @param firewall      开启防火墙
+     * @param linkDown      断开
+     * @param rate          限速(MB/s) 0=不限
+     * @param mtu           MTU 0表示默认，1表示继承bridge的mtu
+     * @param multiQueue    多队列深度，0表示不启用
+     * @param vlanId        vlan ID
+     * @return 成功？
+     */
+    public boolean setVmNetCard(
+            String nodeName,
+            int vmid,
+            int netN,
+            NetCardType netCardType,
+            String mac,
+            String bridgeName,
+            boolean firewall,
+            boolean linkDown,
+            int rate,
+            int mtu,
+            int multiQueue,
+            int vlanId
+    ) throws IOException {
+        StringBuilder netNconfigStringBuilder = new StringBuilder();
+        netNconfigStringBuilder
+                .append(netCardType.getString())
+                .append(mac != null ? "=" + mac : "")
+                .append(",bridge=")
+                .append(bridgeName)
+                .append(firewall ? ",firewall=1" : "")
+                .append(linkDown ? ",link_down=1" : "")
+                .append(rate != 0 ? ",rate=" + rate : "")
+                .append(mtu != 0 ? ",mtu=" + mtu : "")
+                .append(multiQueue != 0 ? ",queues=" + multiQueue : "")
+                .append(vlanId != 0 ? ",tag=" + vlanId : "");
+
+        String netNconfigString = netNconfigStringBuilder.toString();
+        String encodedConfigString = URLEncoder.encode(netNconfigString, StandardCharsets.UTF_8);
+        Map<Integer, String> netNMap = new HashMap<>();
+        netNMap.put(netN, encodedConfigString);
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        netNMap, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * 移除VM硬件设备
+     *
+     * @param nodeName 节点
+     * @param vmid     VMID
+     * @return success
+     */
+    public boolean unlinkHardware(String nodeName, int vmid, String hardwareName) throws IOException {
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getUnlink().unlink(hardwareName);
         return pveResult.isSuccessStatusCode();
     }
 
