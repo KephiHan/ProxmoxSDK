@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.entity.*;
+import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
+import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
 import net.dabaiyun.proxmoxsdk.enums.NetCardType;
 
 import java.io.IOException;
@@ -853,7 +855,7 @@ public class ProxmoxClient {
      * @param password 密码
      * @return 成功
      */
-    public boolean modifyCloudInitPassword(String nodeName, int vmid, String password) throws IOException {
+    public boolean setVmCloudInitPassword(String nodeName, int vmid, String password) throws IOException {
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
@@ -863,6 +865,70 @@ public class ProxmoxClient {
                         null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
         return true;
+    }
+
+    /**
+     * 设置VM CloudInit初始化IP
+     * @param nodeName          节点
+     * @param vmid              VMID
+     * @param netN              网卡序号
+     * @param ipConfigTypeV4    ipv4配置类型 static dhcp
+     * @param ipv4              ipv4地址 仅在ipv4配置类型为static时有效
+     * @param netmaskBitV4      ipv4掩码长度 8-32 仅在ipv4配置类型为static时有效
+     * @param gatewayV4         ipv4网关 仅在ipv4配置类型为static时有效
+     * @param ipConfigTypeV6    ipv6配置类型 static dhcp slaac
+     * @param ipv6              ipv6地址 仅在ipv6配置类型为static时有效
+     * @param netmaskBitV6      ipv6掩码长度 8-128 仅在ipv6配置类型为static时有效
+     * @param gatewayV6         ipv6网关 仅在ipv6配置类型为static时有效
+     * @return 操作结果
+     */
+    public boolean setVmCloudInitIpConfig(
+            String nodeName,
+            int vmid,
+            int netN,
+            IpConfigTypeV4 ipConfigTypeV4,
+            String ipv4,
+            int netmaskBitV4,
+            String gatewayV4,
+            IpConfigTypeV6 ipConfigTypeV6,
+            String ipv6,
+            int netmaskBitV6,
+            String gatewayV6
+    ) throws IOException {
+        // ip=10.1.0.198/24,gw=10.1.0.1,ip6=240e::2/64,gw6=240e::1
+        // ip=10.1.0.198/24,gw=10.1.0.1,ip6=auto
+
+        String ipv4configLine = "";
+        String ipv6configLine = "";
+
+        switch (ipConfigTypeV4) {
+            case DHCP -> ipv4configLine = "ip=dhcp";
+            case STATIC -> ipv4configLine = "ip=" + ipv4 + "/" + netmaskBitV4 + ",gw=" + gatewayV4;
+        }
+
+        switch (ipConfigTypeV6) {
+            case SLAAC -> ipv6configLine = "ip6=auto";
+            case DHCP -> ipv6configLine = "ip6=dhcp";
+            case STATIC -> ipv6configLine = "ip6=" + ipv6 + "/" + netmaskBitV6 + ",gw6=" + gatewayV6;
+        }
+
+        String configLine = URLEncoder.encode(ipv4configLine + "," + ipv6configLine, StandardCharsets.UTF_8);
+
+        //构造map
+        Map<Integer, String> ipconfigNMap = new HashMap<>();
+        ipconfigNMap.put(netN, configLine);
+
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        ipconfigNMap, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.isSuccessStatusCode();
     }
 
     /*

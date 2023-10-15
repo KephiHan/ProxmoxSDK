@@ -2,6 +2,8 @@ import it.corsinvest.proxmoxve.api.PveClient;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
+import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
+import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
 import net.dabaiyun.proxmoxsdk.enums.NetCardType;
 import org.junit.Test;
 
@@ -37,8 +39,7 @@ public class JunitTest {
         System.out.println(
                 pveClient.getNodes().get("pve-e5")
                         .getQemu().get(501)
-                        .getFirewall().getIpset()
-                        .get("ipfilter-net0").toString()
+                        .getConfig().updateVm()
         );
     }
 
@@ -47,6 +48,31 @@ public class JunitTest {
         String net0config = "virtio,bridge=vmbr2";
         String b = URLEncoder.encode(net0config, StandardCharsets.UTF_8);
         System.out.println(b);
+    }
+
+    @Test
+    public void setVmCloudInitIpConfig() throws IOException {
+//        System.out.println(
+//                proxmoxClient.get_ticketPVEAuthCookie()
+//        );
+//        System.out.println(
+//                proxmoxClient.get_ticketCSRFPreventionToken()
+//        );
+        System.out.println(
+                proxmoxClient.setVmCloudInitIpConfig(
+                        "pve-e5",
+                        501,
+                        1,
+                        IpConfigTypeV4.STATIC,
+                        "192.168.77.65",
+                        24,
+                        "192.168.77.1",
+                        IpConfigTypeV6.SLAAC,
+                        "",
+                        0,
+                        ""
+                )
+        );
     }
 
     @Test

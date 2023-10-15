@@ -2,6 +2,7 @@ package net.dabaiyun.proxmoxsdk.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
+import net.dabaiyun.proxmoxsdk.enums.NetCardType;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,7 +15,6 @@ public class VMConfig {
     private int shares;
     private int balloon;
     private int memory;
-    private String net0;
     private String ostype;
     private String vmgenid;
     private String smbios1;
@@ -23,6 +23,8 @@ public class VMConfig {
     private String digest;
     private String name;
     private String boot;
+    private String efidisk0;
+    private String tpmstate0;
 
     private String ide0;
     private String ide1;
@@ -81,8 +83,15 @@ public class VMConfig {
     private String sata3;
     private String sata4;
     private String sata5;
-    private String efidisk0;
-    private String tpmstate0;
+
+    private String net0;
+    private String net1;
+    private String net2;
+    private String net3;
+    private String net4;
+    private String net5;
+    private String net6;
+    private String net7;
 
     /**
      * 根据boot字符串解析第一引导磁盘
