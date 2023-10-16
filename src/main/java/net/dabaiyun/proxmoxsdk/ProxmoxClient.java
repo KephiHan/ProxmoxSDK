@@ -6,14 +6,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.entity.*;
+import net.dabaiyun.proxmoxsdk.enums.DiskDeviceType;
 import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
 import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
-import net.dabaiyun.proxmoxsdk.enums.NetCardType;
+import net.dabaiyun.proxmoxsdk.enums.NetDeviceType;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 
 public class ProxmoxClient {
 
@@ -208,11 +211,136 @@ public class ProxmoxClient {
     public VMConfig getVmConfig(String nodeName, int vmid) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid).getConfig().vmConfig();
-        return objectMapper.readValue(
-                pveResult.getResponse().getJSONObject("data").toString(),
-                new TypeReference<VMConfig>() {
-                }
+
+        JSONObject dataJsonObject = pveResult.getResponse().getJSONObject("data");
+
+        VMConfig vmConfig = objectMapper.readValue(
+                dataJsonObject.toString(),
+                new TypeReference<VMConfig>() {}
         );
+
+        //BootOrder 如果字符串为空表示没有任何启动项
+        if(!vmConfig.getBoot().trim().isBlank()){
+            String[] orderAndKeys = vmConfig.getBoot().split("=");
+            if(orderAndKeys.length == 2){
+                String[] bootList = orderAndKeys[1].split(";");
+                vmConfig.setBootOrder(List.of(bootList));
+            }
+        }
+
+        //NetN
+        for (int netN = 0; netN < 7; netN++) {
+            //检查是否包含Net N
+            if (dataJsonObject.has("net" + netN)) {
+                //构造NetCardConfig
+                VMConfig.NetConfig netConfig = new VMConfig.NetConfig();
+
+                String configLine = dataJsonObject.getString("net" + netN);
+                String[] configList = configLine.split(",");
+                //第一个为网卡类型和mac
+                String[] typeAndMac = configList[0].split("=");
+                netConfig.setNetDeviceType(NetDeviceType.getNetCardTypeByString(typeAndMac[0]));
+                netConfig.setMac(typeAndMac[1]);
+                //遍历每一个key=value
+                for (int configListIndex = 1; configListIndex < configList.length; configListIndex++) {
+                    String[] keyAndValue = configList[configListIndex].split("=");
+                    String key = keyAndValue[0];
+                    String value = keyAndValue[1];
+
+                    switch (key) {
+                        case "bridge" -> netConfig.setBridge(value);
+                        case "firewall" -> netConfig.setFirewall(value.equals("1"));
+                        case "link_down" -> netConfig.setLinkDown(value.equals("1"));
+                        case "mtu" -> netConfig.setMtu(Integer.parseInt(value));
+                        case "queues" -> netConfig.setMultiQueue(Integer.parseInt(value));
+                        case "rate" -> netConfig.setLimitRateMBps(Integer.parseInt(value));
+                        case "tag" -> netConfig.setVlanId(Integer.parseInt(value));
+                    }
+
+                }
+                vmConfig.getNetDeviceMap().put(netN, netConfig);
+            }
+        }
+
+        // Disk List
+        //遍历查找所有存在的磁盘设备
+        Set<String> diskDeviceSet = new HashSet<>();
+
+        for (DiskDeviceType diskDeviceType : DiskDeviceType.values()) {
+            for (String key : dataJsonObject.keySet()) {
+                //排除scsihw
+                if(key.equals("scsihw"))
+                    continue;
+                if(key.startsWith(diskDeviceType.getString())){
+                    diskDeviceSet.add(key);
+                }
+            }
+        }
+
+        for (String diskDevice : diskDeviceSet) {
+            VMConfig.DiskConfig diskConfig = new VMConfig.DiskConfig();
+
+            String configLine = dataJsonObject.getString(diskDevice);
+            String[] configList = configLine.split(",");
+            //存储:VMID/文件名
+            String[] storageAndFilePath = configList[0].split(":");
+            String[] vmidFolderAndFileName = storageAndFilePath[1].split("/");
+            String storage = storageAndFilePath[0];
+            String folder = vmidFolderAndFileName[0];
+            String filename = vmidFolderAndFileName[1];
+
+            String deviceTypeString = diskDevice;
+
+            char endChar = deviceTypeString.charAt(deviceTypeString.length() - 1);
+            while (endChar >= '0' && endChar <= '9') {
+                deviceTypeString = deviceTypeString.substring(0, deviceTypeString.length() - 1);
+                endChar = deviceTypeString.charAt(deviceTypeString.length() - 1);
+            }
+
+            diskConfig.setDiskDeviceType(
+                    DiskDeviceType.getDiskDeviceTypeByString(deviceTypeString)
+            );
+            diskConfig.setStorage(storage);
+            diskConfig.setFolder(folder);
+            diskConfig.setFilename(filename);
+
+            for (int configListIndex = 1; configListIndex < configList.length; configListIndex++) {
+                String[] keyAndValue = configList[configListIndex].split("=");
+                String key = keyAndValue[0];
+                String value = keyAndValue[1];
+
+                switch (key) {
+                    case "iothread" -> diskConfig.setIothread(value.equals("1"));
+                    case "backup" -> diskConfig.setBackup(value.equals("1"));
+                    case "discard" -> diskConfig.setDiscard(value.equals("on"));
+                    case "replicate" -> diskConfig.setReplicate(value.equals("1"));
+                    case "ro" -> diskConfig.setReadonly(value.equals("1"));
+                    case "ssd" -> diskConfig.setSsd(value.equals("1"));
+                    case "media" -> diskConfig.setCDROM(value.equals("cdrom"));
+                    case "size" -> {
+                        char sizeUnit = value.charAt(value.length() - 1);
+                        long sizeNumber = Long.parseLong(value.substring(0, value.length() - 1));
+                        //根据不同单位，转换到Bytes
+                        long sizeBytes = 0L;
+
+                        switch (sizeUnit) {
+                            case 'T' -> sizeBytes = (long) (sizeNumber * Math.pow(1024, 4));
+                            case 'G' -> sizeBytes = (long) (sizeNumber * Math.pow(1024, 3));
+                            case 'M' -> sizeBytes = (long) (sizeNumber * Math.pow(1024, 2));
+                            case 'K' -> sizeBytes = (long) (sizeNumber * Math.pow(1024, 1));
+                            case 'B' -> sizeBytes = (long) (sizeNumber * Math.pow(1024, 0));
+                        }
+
+                        diskConfig.setSizeBytes(sizeBytes);
+                    }
+                }
+            }
+
+            vmConfig.getDiskConfigMap().put(diskDevice, diskConfig);
+        }
+
+
+        return vmConfig;
     }
 
     /**
@@ -500,7 +628,7 @@ public class ProxmoxClient {
      * @param nodeName      节点
      * @param vmid          VMID
      * @param netN             网卡序号，从0开始，如第二张网卡为1
-     * @param netCardType   网卡类型
+     * @param netDeviceType   网卡类型
      * @param bridgeName    网桥
      * @return 成功？
      */
@@ -508,14 +636,14 @@ public class ProxmoxClient {
             String nodeName,
             int vmid,
             int netN,
-            NetCardType netCardType,
+            NetDeviceType netDeviceType,
             String bridgeName
             ) throws IOException {
         return this.setVmNetCard(
                 nodeName,
                 vmid,
                 netN,
-                netCardType,
+                netDeviceType,
                 null,
                 bridgeName,
                 false,
@@ -532,7 +660,7 @@ public class ProxmoxClient {
      * @param nodeName      节点
      * @param vmid          VMID
      * @param netN             网卡序号，从0开始，如第二张网卡为1
-     * @param netCardType   网卡类型
+     * @param netDeviceType   网卡类型
      * @param mac           MAC地址
      * @param bridgeName    网桥
      * @param firewall      开启防火墙
@@ -547,7 +675,7 @@ public class ProxmoxClient {
             String nodeName,
             int vmid,
             int netN,
-            NetCardType netCardType,
+            NetDeviceType netDeviceType,
             String mac,
             String bridgeName,
             boolean firewall,
@@ -559,7 +687,7 @@ public class ProxmoxClient {
     ) throws IOException {
         StringBuilder netNconfigStringBuilder = new StringBuilder();
         netNconfigStringBuilder
-                .append(netCardType.getString())
+                .append(netDeviceType.getString())
                 .append(mac != null ? "=" + mac : "")
                 .append(",bridge=")
                 .append(bridgeName)
@@ -855,13 +983,13 @@ public class ProxmoxClient {
      * @param password 密码
      * @return 成功
      */
-    public boolean setVmCloudInitPassword(String nodeName, int vmid, String password) throws IOException {
+    public boolean setVmCloudInitUserPassword(String nodeName, int vmid,String username, String password) throws IOException {
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getConfig().updateVm(
                         null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        password, null, null,
+                        password, null, username,
                         null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
         return true;

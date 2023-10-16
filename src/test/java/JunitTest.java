@@ -2,9 +2,10 @@ import it.corsinvest.proxmoxve.api.PveClient;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
+import net.dabaiyun.proxmoxsdk.entity.VMConfig;
 import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
 import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
-import net.dabaiyun.proxmoxsdk.enums.NetCardType;
+import net.dabaiyun.proxmoxsdk.enums.NetDeviceType;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,7 +40,33 @@ public class JunitTest {
         System.out.println(
                 pveClient.getNodes().get("pve-e5")
                         .getQemu().get(501)
-                        .getConfig().updateVm()
+                        .getConfig().vmConfig()
+                        .getResponse().toString()
+        );
+    }
+
+    @Test
+    public void vmConfigTest() throws IOException {
+        VMConfig vmConfig = proxmoxClient.getVmConfig(
+                "pve-e5",
+                501
+        );
+        for (Map.Entry<String, VMConfig.DiskConfig> diskConfigEntry : vmConfig.getDiskConfigMap().entrySet()) {
+            System.out.println(
+                    diskConfigEntry.getKey() + ":  " + diskConfigEntry.getValue().getDiskDeviceType().getString() + ": " + diskConfigEntry.getValue().toConfigLine()
+            );
+        }
+    }
+
+    @Test
+    public void resizeDisk() throws IOException {
+        System.out.println(
+                proxmoxClient.resizeDisk(
+                        "pve-e5",
+                        501,
+                        "virtio0",
+                        30
+                )
         );
     }
 
@@ -82,7 +109,7 @@ public class JunitTest {
 //                        "pve-e5",
 //                        501,
 //                        1,
-//                        NetCardType.VirtIo,
+//                        NetDeviceType.VirtIo,
 //                        "8E:51:E6:11:61:44",
 //                        "vmbr0",
 //                        true,
@@ -96,7 +123,7 @@ public class JunitTest {
                         "pve-e5",
                         501,
                         4,
-                        NetCardType.VirtIo,
+                        NetDeviceType.VirtIo,
                         "vmbr0"
                 )
         );
