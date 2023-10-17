@@ -84,6 +84,10 @@ public class VMConfig {
         private long sizeBytes = 0L;
         private boolean isCDROM = false;
 
+        public String getDiskSizeString(){
+            return diskSizeToHumanly(sizeBytes);
+        }
+
         public String toConfigLine() {
             StringBuilder configLineBuilder = new StringBuilder();
             configLineBuilder
@@ -103,23 +107,27 @@ public class VMConfig {
             if (isCDROM)
                 configLineBuilder.append(",").append("media=").append("cdrom");
             if (sizeBytes != 0) {
-                String sizeString = "";
-                if (sizeBytes % Math.pow(1024, 4) == 0) {
-                    sizeString = (int) (sizeBytes * Math.pow(1024, -4)) + "T";
-                } else if (sizeBytes % Math.pow(1024, 3) == 0) {
-                    sizeString = (int) (sizeBytes * Math.pow(1024, -3)) + "G";
-                } else if (sizeBytes % Math.pow(1024, 2) == 0) {
-                    sizeString = (int) (sizeBytes * Math.pow(1024, -2)) + "M";
-                } else if (sizeBytes % Math.pow(1024, 1) == 0) {
-                    sizeString = (int) (sizeBytes * Math.pow(1024, -1)) + "K";
-                } else {
-                    sizeString = (int) sizeBytes + "B";
-                }
-
-                configLineBuilder.append(",").append("size=").append(sizeString);
+                configLineBuilder.append(",").append("size=")
+                        .append(diskSizeToHumanly(sizeBytes));
             }
 
             return configLineBuilder.toString();
+        }
+
+        private String diskSizeToHumanly(long sizeBytes){
+            String sizeString = "";
+            if (sizeBytes % Math.pow(1024, 4) == 0) {
+                sizeString = (int) (sizeBytes * Math.pow(1024, -4)) + "T";
+            } else if (sizeBytes % Math.pow(1024, 3) == 0) {
+                sizeString = (int) (sizeBytes * Math.pow(1024, -3)) + "G";
+            } else if (sizeBytes % Math.pow(1024, 2) == 0) {
+                sizeString = (int) (sizeBytes * Math.pow(1024, -2)) + "M";
+            } else if (sizeBytes % Math.pow(1024, 1) == 0) {
+                sizeString = (int) (sizeBytes * Math.pow(1024, -1)) + "K";
+            } else {
+                sizeString = (int) sizeBytes + "B";
+            }
+            return sizeString;
         }
     }
 

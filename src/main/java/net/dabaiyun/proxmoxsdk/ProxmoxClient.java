@@ -290,7 +290,7 @@ public class ProxmoxClient {
             String filename = vmidFolderAndFileName[1];
 
             String deviceTypeString = diskDevice;
-
+            //去除设备名末尾数字
             char endChar = deviceTypeString.charAt(deviceTypeString.length() - 1);
             while (endChar >= '0' && endChar <= '9') {
                 deviceTypeString = deviceTypeString.substring(0, deviceTypeString.length() - 1);
