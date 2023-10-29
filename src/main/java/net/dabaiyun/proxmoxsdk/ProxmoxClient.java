@@ -1067,39 +1067,39 @@ public class ProxmoxClient {
      * 启动VM
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean startVM(String nodeName, int vmid) throws IOException {
+    public String startVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getStatus().getStart().vmStart();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 软关机
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean shutdownVM(String nodeName, int vmid) throws IOException {
+    public String shutdownVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getStatus().getShutdown().vmShutdown();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 关机再开机
      *
      * @param vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean rebootVM(String nodeName, int vmid) throws IOException {
+    public String rebootVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getStatus().getReboot().vmReboot();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
@@ -1107,65 +1107,65 @@ public class ProxmoxClient {
      *
      * @param vmid    vmid
      * @param timeout 超时
-     * @return success?
+     * @return UPID
      */
-    public boolean rebootVM(String nodeName, int vmid, int timeout) throws IOException {
+    public String rebootVM(String nodeName, int vmid, int timeout) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getStatus().getReboot().vmReboot(timeout);
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 挂起VM
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean suspendVM(String nodeName, int vmid) throws IOException {
+    public String suspendVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getStatus().getSuspend().vmSuspend();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 强制关闭VM
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean stopVM(String nodeName, int vmid) throws IOException {
+    public String stopVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult =
                 pveClient.getNodes().get(nodeName)
                         .getQemu().get(vmid).getStatus().getStop().vmStop();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 强制重启
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean resetVM(String nodeName, int vmid) throws IOException {
+    public String resetVM(String nodeName, int vmid) throws IOException {
         PveResult pveResult =
                 pveClient.getNodes().get(nodeName)
                         .getQemu().get(vmid).getStatus().getReset().vmReset();
-        return pveResult.isSuccessStatusCode();
+        return pveResult.getResponse().getString("data");
     }
 
     /**
      * 删除一个虚拟机
      *
      * @param vmid vmid
-     * @return success?
+     * @return UPID
      */
-    public boolean deleteVm(String nodeName, int vmid) throws IOException {
+    public String deleteVm(String nodeName, int vmid) throws IOException {
         PveResult pveResult =
                 pveClient.getNodes().get(nodeName)
                         .getQemu().get(vmid).destroyVm();
-        return true;
+        return pveResult.getResponse().getString("data");
     }
 
     //////////////////////////////////////////

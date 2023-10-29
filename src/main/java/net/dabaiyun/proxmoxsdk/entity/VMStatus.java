@@ -23,4 +23,5 @@ public class VMStatus {
     private long diskwrite;
     private long netin;
     private String status;
+
 }
