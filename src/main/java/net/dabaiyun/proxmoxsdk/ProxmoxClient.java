@@ -573,7 +573,8 @@ public class ProxmoxClient {
      * @return 成功？
      * @throws IOException ex
      */
-    public boolean setVmCDROM(String nodeName, int vmid, String filePath) throws IOException {
+    public boolean setVmCDROM(String nodeName, int vmid, String storage, String filename) throws IOException {
+        String filePath = storage + ":iso/" + filename;
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
