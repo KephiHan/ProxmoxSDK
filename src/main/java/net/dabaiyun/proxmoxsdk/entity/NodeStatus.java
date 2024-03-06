@@ -7,53 +7,53 @@ import java.util.List;
 public class NodeStatus {
 
     private String pveversion;
-    private int wait;
+    private Double wait;
     private Memory memory;
     private Ksm ksm;
     private Swap swap;
-    private int idle;
+    private Double idle;
     private Rootfs rootfs;
-    private int cpu;
+    private Double cpu;
     private List<String> loadavg;
     private Cpuinfo cpuinfo;
     private String kversion;
-    private long uptime;
+    private Long uptime;
 
     @Data
-    public class Memory {
-        private long total;
-        private long used;
-        private long free;
+    public static class Memory {
+        private Long total;
+        private Long used;
+        private Long free;
     }
 
     @Data
-    public class Ksm {
-        private long shared;
+    public static class Ksm {
+        private Long shared;
     }
 
     @Data
-    public class Swap {
-        private long total;
-        private long used;
-        private long free;
+    public static class Swap {
+        private Long total;
+        private Long used;
+        private Long free;
     }
 
     @Data
-    public class Rootfs {
-        private long avail;
-        private long total;
-        private long used;
-        private long free;
+    public static class Rootfs {
+        private Long avail;
+        private Long total;
+        private Long used;
+        private Long free;
     }
 
     @Data
-    public class Cpuinfo {
-        private int cores;
-        private int cpus;
+    public static class Cpuinfo {
+        private Integer cores;
+        private Integer cpus;
         private String flags;
         private String model;
-        private int sockets;
-        private int user_hz;
+        private Integer sockets;
+        private Integer user_hz;
         private String mhz;
         private String hvm;
     }

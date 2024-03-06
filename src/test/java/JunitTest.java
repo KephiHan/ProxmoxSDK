@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
@@ -21,10 +22,30 @@ public class JunitTest {
             "192.168.77.7",
             8006,
             "root",
-            "password"
+            "BayMax10281028"
     );
 
+    private final String nodename = "pve-e5";
+
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void nodeStatusTest() throws IOException {
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.getNodeStatus(nodename)
+                        )
+        );
+    }
+
+    @Test
+    public void isPveUserExistTest() throws IOException {
+        String username = "KephiHan@pve";
+        System.out.println(
+                proxmoxClient.isPveUserExist(username)
+        );
     }
 
     @Test
@@ -35,13 +56,25 @@ public class JunitTest {
         );
         pveClient.login(
                 "root",
-                "password"
+                "BayMax10281028"
         );
         System.out.println(
                 pveClient.getNodes().get("pve-e5")
-                        .getQemu().get(501)
-                        .getConfig().vmConfig()
+                        .getStatus().status()
                         .getResponse().toString()
+        );
+
+    }
+
+    @Test
+    public void setCdromTest() throws IOException {
+        System.out.println(
+                proxmoxClient.setVmCDROM(
+                        "pve-129k",
+                        1010,
+                        "local",
+                        "cn_windows_server_2016_x64_dvd_9718765_virtio.iso"
+                )
         );
     }
 
@@ -51,21 +84,24 @@ public class JunitTest {
                 "pve-e5",
                 501
         );
-        for (Map.Entry<String, VMConfig.DiskConfig> diskConfigEntry : vmConfig.getDiskConfigMap().entrySet()) {
-            System.out.println(
-                    diskConfigEntry.getKey() + ":  " + diskConfigEntry.getValue().getDiskDeviceType().getString() + ": " + diskConfigEntry.getValue().toConfigLine()
-            );
-        }
+        System.out.println(
+                vmConfig.getBootOrder().get(0)
+        );
+        System.out.println(
+                vmConfig.getDiskConfigMap()
+                        .get(vmConfig.getBootOrder().get(0))
+                        .getDiskSizeString()
+        );
     }
 
     @Test
     public void resizeDisk() throws IOException {
         System.out.println(
                 proxmoxClient.resizeDisk(
-                        "pve-e5",
-                        501,
-                        "virtio0",
-                        30
+                        "pve-129k",
+                        1002,
+                        "scsi0",
+                        40
                 )
         );
     }
