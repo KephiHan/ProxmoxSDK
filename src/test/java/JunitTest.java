@@ -1,5 +1,6 @@
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
+import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
@@ -28,6 +29,28 @@ public class JunitTest {
     private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void storageTest() throws IOException {
+//        PveClient pveClient = new PveClient(
+//                "192.168.77.7",
+//                8006
+//        );
+//        pveClient.login(
+//                "root",
+//                "BayMax10281028"
+//        );
+//        PveResult pveResult = pveClient.getNodes().get("pve-e5").getStorage().index();
+//        System.out.println(
+//                pveResult.getResponse().toString()
+//        );
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.getNodeStorageList(nodename)
+                        )
+        );
     }
 
     @Test

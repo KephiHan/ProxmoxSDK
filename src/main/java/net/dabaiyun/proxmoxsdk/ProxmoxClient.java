@@ -6,17 +6,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.entity.*;
-import net.dabaiyun.proxmoxsdk.enums.DiskDeviceType;
-import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
-import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
-import net.dabaiyun.proxmoxsdk.enums.NetDeviceType;
+import net.dabaiyun.proxmoxsdk.enums.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class ProxmoxClient {
 
@@ -97,6 +93,41 @@ public class ProxmoxClient {
                 new TypeReference<NodeStatus>() {
                 }
         );
+    }
+
+    /**
+     * 获取节点存储列表
+     *
+     * @param nodeName 节点名称
+     * @return 存储列表
+     */
+    public List<StorageInfo> getNodeStorageList(String nodeName) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getStorage().index();
+        List<StorageInfo> storageInfoList = objectMapper.readValue(
+                pveResult.getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<StorageInfo>>() {
+                }
+        );
+        //解析为ENUM
+        for (StorageInfo storageInfo : storageInfoList) {
+            //Type
+            storageInfo.setStorageType(
+                    StorageType.getStorageTypeByString(storageInfo.getType())
+            );
+            //Content
+            String[] contents = storageInfo.getContent().split(",");
+            List<StorageContent> contentList = new ArrayList<>();
+            for (int i = 0; i < contents.length; i++) {
+                StorageContent storageContent = StorageContent.getStorageContentByString(contents[i]);
+                if (storageContent == null) {
+                    continue;
+                }
+                contentList.add(storageContent);
+            }
+            storageInfo.setContentList(contentList);
+        }
+        return storageInfoList;
     }
 
     /**
@@ -216,13 +247,14 @@ public class ProxmoxClient {
 
         VMConfig vmConfig = objectMapper.readValue(
                 dataJsonObject.toString(),
-                new TypeReference<VMConfig>() {}
+                new TypeReference<VMConfig>() {
+                }
         );
 
         //BootOrder 如果字符串为空表示没有任何启动项
-        if(!vmConfig.getBoot().trim().isBlank()){
+        if (!vmConfig.getBoot().trim().isBlank()) {
             String[] orderAndKeys = vmConfig.getBoot().split("=");
-            if(orderAndKeys.length == 2){
+            if (orderAndKeys.length == 2) {
                 String[] bootList = orderAndKeys[1].split(";");
                 vmConfig.setBootOrder(List.of(bootList));
             }
@@ -269,9 +301,9 @@ public class ProxmoxClient {
         for (DiskDeviceType diskDeviceType : DiskDeviceType.values()) {
             for (String key : dataJsonObject.keySet()) {
                 //排除scsihw
-                if(key.equals("scsihw"))
+                if (key.equals("scsihw"))
                     continue;
-                if(key.startsWith(diskDeviceType.getString())){
+                if (key.startsWith(diskDeviceType.getString())) {
                     diskDeviceSet.add(key);
                 }
             }
@@ -626,10 +658,11 @@ public class ProxmoxClient {
 
     /**
      * VM设置网卡 快速设置默认值
+     *
      * @param nodeName      节点
      * @param vmid          VMID
-     * @param netN             网卡序号，从0开始，如第二张网卡为1
-     * @param netDeviceType   网卡类型
+     * @param netN          网卡序号，从0开始，如第二张网卡为1
+     * @param netDeviceType 网卡类型
      * @param bridgeName    网桥
      * @return 成功？
      */
@@ -639,7 +672,7 @@ public class ProxmoxClient {
             int netN,
             NetDeviceType netDeviceType,
             String bridgeName
-            ) throws IOException {
+    ) throws IOException {
         return this.setVmNetCard(
                 nodeName,
                 vmid,
@@ -658,10 +691,11 @@ public class ProxmoxClient {
 
     /**
      * VM设置网卡
+     *
      * @param nodeName      节点
      * @param vmid          VMID
-     * @param netN             网卡序号，从0开始，如第二张网卡为1
-     * @param netDeviceType   网卡类型
+     * @param netN          网卡序号，从0开始，如第二张网卡为1
+     * @param netDeviceType 网卡类型
      * @param mac           MAC地址
      * @param bridgeName    网桥
      * @param firewall      开启防火墙
@@ -739,13 +773,15 @@ public class ProxmoxClient {
         PveResult pveResult = pveClient.getAccess().getRoles().index();
         return objectMapper.readValue(
                 pveResult.getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<UserRole>>() {}
+                new TypeReference<List<UserRole>>() {
+                }
         );
     }
 
     /**
      * 创建UserRole
-     * @param roleId Role名称
+     *
+     * @param roleId    Role名称
      * @param privsList 权限列表
      * @return 创建结果
      * @throws IOException ex
@@ -765,7 +801,8 @@ public class ProxmoxClient {
 
     /**
      * 更新UserRole
-     * @param roleId Role名称
+     *
+     * @param roleId    Role名称
      * @param privsList 权限列表
      * @return 更新结果
      * @throws IOException ex
@@ -783,6 +820,7 @@ public class ProxmoxClient {
 
     /**
      * 删除用户权限
+     *
      * @param roleId Role名称
      * @return 删除结果
      * @throws IOException ex
@@ -795,8 +833,9 @@ public class ProxmoxClient {
 
     /**
      * 获取VM IpSet列表
+     *
      * @param nodeName 节点
-     * @param vmid vmid
+     * @param vmid     vmid
      * @return IpSet列表
      * @throws IOException ex
      */
@@ -807,16 +846,18 @@ public class ProxmoxClient {
                         .getFirewall().getIpset()
                         .ipsetIndex().getResponse()
                         .getJSONArray("data").toString(),
-                new TypeReference<List<IpSet>>() {}
+                new TypeReference<List<IpSet>>() {
+                }
         );
     }
 
     /**
      * 创建VM IpSet
-     * @param nodeName 节点
-     * @param vmid vmid
+     *
+     * @param nodeName  节点
+     * @param vmid      vmid
      * @param ipSetName IpSet名称
-     * @param comment 备注
+     * @param comment   备注
      * @return 成功？
      * @throws IOException ex
      */
@@ -834,8 +875,9 @@ public class ProxmoxClient {
 
     /**
      * 删除VM IpSet
-     * @param nodeName 节点
-     * @param vmid vmid
+     *
+     * @param nodeName  节点
+     * @param vmid      vmid
      * @param ipSetName IpSet名称
      * @return 成功？
      * @throws IOException ex
@@ -849,8 +891,9 @@ public class ProxmoxClient {
 
     /**
      * 获取VM IpSet Ip/Cidr列表
-     * @param nodeName 节点
-     * @param vmid vmid
+     *
+     * @param nodeName  节点
+     * @param vmid      vmid
      * @param ipSetName IpSet名称
      * @return IpCidr列表
      * @throws IOException ex
@@ -862,17 +905,19 @@ public class ProxmoxClient {
                         .getFirewall().getIpset()
                         .get(ipSetName).getIpset()
                         .getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<IpCidr>>() {}
+                new TypeReference<List<IpCidr>>() {
+                }
         );
     }
 
     /**
      * 创建VM IpSet IpCidr
-     * @param nodeName 节点
-     * @param vmid vmid
+     *
+     * @param nodeName  节点
+     * @param vmid      vmid
      * @param ipSetName IpSet名称
-     * @param cidr ip地址或者网段CIDR
-     * @param comment 备注
+     * @param cidr      ip地址或者网段CIDR
+     * @param comment   备注
      * @param noMatch
      * @return 成功？
      * @throws IOException ex
@@ -890,10 +935,11 @@ public class ProxmoxClient {
 
     /**
      * 删除VM IpSet IpCidr
-     * @param nodeName 节点
-     * @param vmid vmid
+     *
+     * @param nodeName  节点
+     * @param vmid      vmid
      * @param ipSetName IpSet名称
-     * @param cidr ip地址或者网段CIDR
+     * @param cidr      ip地址或者网段CIDR
      * @return 成功？
      * @throws IOException ex
      */
@@ -904,7 +950,6 @@ public class ProxmoxClient {
                 .get(ipSetName).get(cidr)
                 .removeIp().isSuccessStatusCode();
     }
-
 
 
     //////////////////////////////////////////
@@ -984,7 +1029,7 @@ public class ProxmoxClient {
      * @param password 密码
      * @return 成功
      */
-    public boolean setVmCloudInitUserPassword(String nodeName, int vmid,String username, String password) throws IOException {
+    public boolean setVmCloudInitUserPassword(String nodeName, int vmid, String username, String password) throws IOException {
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
@@ -998,17 +1043,18 @@ public class ProxmoxClient {
 
     /**
      * 设置VM CloudInit初始化IP
-     * @param nodeName          节点
-     * @param vmid              VMID
-     * @param netN              网卡序号
-     * @param ipConfigTypeV4    ipv4配置类型 static dhcp
-     * @param ipv4              ipv4地址 仅在ipv4配置类型为static时有效
-     * @param netmaskBitV4      ipv4掩码长度 8-32 仅在ipv4配置类型为static时有效
-     * @param gatewayV4         ipv4网关 仅在ipv4配置类型为static时有效
-     * @param ipConfigTypeV6    ipv6配置类型 static dhcp slaac
-     * @param ipv6              ipv6地址 仅在ipv6配置类型为static时有效
-     * @param netmaskBitV6      ipv6掩码长度 8-128 仅在ipv6配置类型为static时有效
-     * @param gatewayV6         ipv6网关 仅在ipv6配置类型为static时有效
+     *
+     * @param nodeName       节点
+     * @param vmid           VMID
+     * @param netN           网卡序号
+     * @param ipConfigTypeV4 ipv4配置类型 static dhcp
+     * @param ipv4           ipv4地址 仅在ipv4配置类型为static时有效
+     * @param netmaskBitV4   ipv4掩码长度 8-32 仅在ipv4配置类型为static时有效
+     * @param gatewayV4      ipv4网关 仅在ipv4配置类型为static时有效
+     * @param ipConfigTypeV6 ipv6配置类型 static dhcp slaac
+     * @param ipv6           ipv6地址 仅在ipv6配置类型为static时有效
+     * @param netmaskBitV6   ipv6掩码长度 8-128 仅在ipv6配置类型为static时有效
+     * @param gatewayV6      ipv6网关 仅在ipv6配置类型为static时有效
      * @return 操作结果
      */
     public boolean setVmCloudInitIpConfig(
