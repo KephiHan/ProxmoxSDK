@@ -5,9 +5,6 @@ import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
 import net.dabaiyun.proxmoxsdk.entity.VMConfig;
-import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV4;
-import net.dabaiyun.proxmoxsdk.enums.IpConfigTypeV6;
-import net.dabaiyun.proxmoxsdk.enums.NetDeviceType;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,14 +38,15 @@ public class JunitTest {
 //                "root",
 //                "BayMax10281028"
 //        );
-//        PveResult pveResult = pveClient.getNodes().get("pve-e5").getStorage().index();
+//        PveResult pveResult = pveClient.getNodes().get("pve-e5")
+//                .getStorage().get("local").getStatus().readStatus();
 //        System.out.println(
 //                pveResult.getResponse().toString()
 //        );
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
                         .writeValueAsString(
-                                proxmoxClient.getNodeStorageList(nodename)
+                                proxmoxClient.getNodeStorageInfo(nodename, "nvme0n1p1")
                         )
         );
     }
@@ -149,11 +147,11 @@ public class JunitTest {
                         "pve-e5",
                         501,
                         1,
-                        IpConfigTypeV4.STATIC,
+                        "static",
                         "192.168.77.65",
                         24,
                         "192.168.77.1",
-                        IpConfigTypeV6.SLAAC,
+                        "auto",
                         "",
                         0,
                         ""
@@ -164,25 +162,11 @@ public class JunitTest {
     @Test
     public void setVmNetCard() throws IOException {
         System.out.println(
-//                proxmoxClient.setVmNetCard(
-//                        "pve-e5",
-//                        501,
-//                        1,
-//                        NetDeviceType.VirtIo,
-//                        "8E:51:E6:11:61:44",
-//                        "vmbr0",
-//                        true,
-//                        true,
-//                        5,
-//                        1,
-//                        0,
-//                        1
-//                )
                 proxmoxClient.setVmNetCard(
                         "pve-e5",
                         501,
                         4,
-                        NetDeviceType.VirtIo,
+                        "virtio",
                         "vmbr0"
                 )
         );

@@ -2,10 +2,11 @@ package net.dabaiyun.proxmoxsdk.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
-import net.dabaiyun.proxmoxsdk.enums.DiskDeviceType;
-import net.dabaiyun.proxmoxsdk.enums.NetDeviceType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -37,7 +38,20 @@ public class VMConfig {
 
     @Data
     public static class NetConfig {
-        private NetDeviceType netDeviceType;
+
+        public static final String DeviceType_E1000         = "e1000";
+        public static final String DeviceType_VirtIO        = "virtio";
+        public static final String DeviceType_RTL8139       = "rtl8139";
+        public static final String DeviceType_VMXNET3       = "vmxnet3";
+
+        public static final String IpConfigTypeV4_DHCP      = "dhcp";
+        public static final String IpConfigTypeV4_STATIC    = "static";
+
+        public static final String IpConfigTypeV6_DHCP      = "dhcp";
+        public static final String IpConfigTypeV6_STATIC    = "static";
+        public static final String IpConfigTypeV6_SLAAC     = "auto";
+
+        private String deviceType;
         private String mac;
         private String bridge;
         private boolean firewall = false;
@@ -50,7 +64,7 @@ public class VMConfig {
         public String toConfigLine() {
             StringBuilder configLineBuilder = new StringBuilder();
             configLineBuilder
-                    .append(netDeviceType.getString()).append("=").append(mac)
+                    .append(deviceType).append("=").append(mac)
                     .append(",")
                     .append("bridge=").append(bridge);
             if (firewall)
@@ -71,7 +85,13 @@ public class VMConfig {
 
     @Data
     public static class DiskConfig {
-        private DiskDeviceType diskDeviceType;
+
+        public static final String DeviceType_IDE       = "ide";
+        public static final String DeviceType_SATA      = "sata";
+        public static final String DeviceType_SCSI      = "scsi";
+        public static final String DeviceType_VirtIO    = "virtio";
+
+        private String deviceType;
         private String storage;
         private String folder;
         private String filename;

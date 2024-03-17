@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.entity.*;
-import net.dabaiyun.proxmoxsdk.enums.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -104,30 +103,29 @@ public class ProxmoxClient {
     public List<StorageInfo> getNodeStorageList(String nodeName) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getStorage().index();
-        List<StorageInfo> storageInfoList = objectMapper.readValue(
+        return objectMapper.readValue(
                 pveResult.getResponse().getJSONArray("data").toString(),
                 new TypeReference<List<StorageInfo>>() {
                 }
         );
-        //解析为ENUM
-        for (StorageInfo storageInfo : storageInfoList) {
-            //Type
-            storageInfo.setStorageType(
-                    StorageType.getStorageTypeByString(storageInfo.getType())
-            );
-            //Content
-            String[] contents = storageInfo.getContent().split(",");
-            List<StorageContent> contentList = new ArrayList<>();
-            for (int i = 0; i < contents.length; i++) {
-                StorageContent storageContent = StorageContent.getStorageContentByString(contents[i]);
-                if (storageContent == null) {
-                    continue;
-                }
-                contentList.add(storageContent);
-            }
-            storageInfo.setContentList(contentList);
-        }
-        return storageInfoList;
+    }
+
+    /**
+     * 获取存储详情
+     *
+     * @param nodeName    节点名称
+     * @param storageName 存储名称
+     * @return 存储详情
+     */
+    public StorageInfo getNodeStorageInfo(String nodeName, String storageName) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getStorage().get(storageName).getStatus().readStatus();
+        StorageInfo storageInfo = objectMapper.readValue(
+                pveResult.getResponse().getJSONObject("data").toString(),
+                new TypeReference<StorageInfo>() {}
+        );
+        storageInfo.setStorage(storageName);
+        return storageInfo;
     }
 
     /**
@@ -271,7 +269,7 @@ public class ProxmoxClient {
                 String[] configList = configLine.split(",");
                 //第一个为网卡类型和mac
                 String[] typeAndMac = configList[0].split("=");
-                netConfig.setNetDeviceType(NetDeviceType.getNetCardTypeByString(typeAndMac[0]));
+                netConfig.setDeviceType(typeAndMac[0]);
                 netConfig.setMac(typeAndMac[1]);
                 //遍历每一个key=value
                 for (int configListIndex = 1; configListIndex < configList.length; configListIndex++) {
@@ -298,12 +296,18 @@ public class ProxmoxClient {
         //遍历查找所有存在的磁盘设备
         Set<String> diskDeviceSet = new HashSet<>();
 
-        for (DiskDeviceType diskDeviceType : DiskDeviceType.values()) {
+        List<String> diskDeviceTypeList = new ArrayList<>();
+        diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_IDE);
+        diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_SATA);
+        diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_SCSI);
+        diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_VirtIO);
+
+        for (String deviceType : diskDeviceTypeList) {
             for (String key : dataJsonObject.keySet()) {
                 //排除scsihw
                 if (key.equals("scsihw"))
                     continue;
-                if (key.startsWith(diskDeviceType.getString())) {
+                if (key.startsWith(deviceType)) {
                     diskDeviceSet.add(key);
                 }
             }
@@ -329,9 +333,7 @@ public class ProxmoxClient {
                 endChar = deviceTypeString.charAt(deviceTypeString.length() - 1);
             }
 
-            diskConfig.setDiskDeviceType(
-                    DiskDeviceType.getDiskDeviceTypeByString(deviceTypeString)
-            );
+            diskConfig.setDeviceType(deviceTypeString);
             diskConfig.setStorage(storage);
             diskConfig.setFolder(folder);
             diskConfig.setFilename(filename);
@@ -670,7 +672,7 @@ public class ProxmoxClient {
             String nodeName,
             int vmid,
             int netN,
-            NetDeviceType netDeviceType,
+            String netDeviceType,
             String bridgeName
     ) throws IOException {
         return this.setVmNetCard(
@@ -710,7 +712,7 @@ public class ProxmoxClient {
             String nodeName,
             int vmid,
             int netN,
-            NetDeviceType netDeviceType,
+            String netDeviceType,
             String mac,
             String bridgeName,
             boolean firewall,
@@ -722,7 +724,7 @@ public class ProxmoxClient {
     ) throws IOException {
         StringBuilder netNconfigStringBuilder = new StringBuilder();
         netNconfigStringBuilder
-                .append(netDeviceType.getString())
+                .append(netDeviceType)
                 .append(mac != null ? "=" + mac : "")
                 .append(",bridge=")
                 .append(bridgeName)
@@ -1061,11 +1063,11 @@ public class ProxmoxClient {
             String nodeName,
             int vmid,
             int netN,
-            IpConfigTypeV4 ipConfigTypeV4,
+            String ipConfigTypeV4,
             String ipv4,
             int netmaskBitV4,
             String gatewayV4,
-            IpConfigTypeV6 ipConfigTypeV6,
+            String ipConfigTypeV6,
             String ipv6,
             int netmaskBitV6,
             String gatewayV6
@@ -1077,14 +1079,14 @@ public class ProxmoxClient {
         String ipv6configLine = "";
 
         switch (ipConfigTypeV4) {
-            case DHCP -> ipv4configLine = "ip=dhcp";
-            case STATIC -> ipv4configLine = "ip=" + ipv4 + "/" + netmaskBitV4 + ",gw=" + gatewayV4;
+            case VMConfig.NetConfig.IpConfigTypeV4_DHCP -> ipv4configLine = "ip=dhcp";
+            case VMConfig.NetConfig.IpConfigTypeV4_STATIC -> ipv4configLine = "ip=" + ipv4 + "/" + netmaskBitV4 + ",gw=" + gatewayV4;
         }
 
         switch (ipConfigTypeV6) {
-            case SLAAC -> ipv6configLine = "ip6=auto";
-            case DHCP -> ipv6configLine = "ip6=dhcp";
-            case STATIC -> ipv6configLine = "ip6=" + ipv6 + "/" + netmaskBitV6 + ",gw6=" + gatewayV6;
+            case VMConfig.NetConfig.IpConfigTypeV6_SLAAC -> ipv6configLine = "ip6=auto";
+            case VMConfig.NetConfig.IpConfigTypeV6_DHCP -> ipv6configLine = "ip6=dhcp";
+            case VMConfig.NetConfig.IpConfigTypeV6_STATIC -> ipv6configLine = "ip6=" + ipv6 + "/" + netmaskBitV6 + ",gw6=" + gatewayV6;
         }
 
         String configLine = URLEncoder.encode(ipv4configLine + "," + ipv6configLine, StandardCharsets.UTF_8);
