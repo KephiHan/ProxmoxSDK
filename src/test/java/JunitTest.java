@@ -3,6 +3,7 @@ import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
 import net.dabaiyun.proxmoxsdk.entity.RrdData;
+import net.dabaiyun.proxmoxsdk.entity.StorageContent;
 import net.dabaiyun.proxmoxsdk.entity.UserRole;
 import net.dabaiyun.proxmoxsdk.entity.VMConfig;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class JunitTest {
     private final ProxmoxClient proxmoxClient
 //            = null;
             = new ProxmoxClient(
-            "192.168.77.7",
+            "192.168.77.8",
             8006,
             "root",
             "BayMax10281028"
@@ -26,6 +27,41 @@ public class JunitTest {
     private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void storageContentTest() throws IOException {
+        List<StorageContent> storageContentList =
+                proxmoxClient.getStorageContentList(
+                        "pve-i5",
+                        "local",
+                        StorageContent.ContentType_IMAGE
+                );
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                storageContentList
+                        )
+        );
+    }
+
+    @Test
+    public void isoImageTest() throws IOException {
+        PveClient pveClient = new PveClient(
+                "192.168.77.8",
+                8006
+        );
+        pveClient.login(
+                "root",
+                "BayMax10281028"
+        );
+        PveResult pveResult = pveClient.getNodes().get("pve-i5")
+                .getStorage().get("local").getContent()
+                .index();
+//                .get("iso").info();
+        System.out.println(
+                pveResult.getResponse().toString()
+        );
     }
 
     @Test
@@ -103,7 +139,7 @@ public class JunitTest {
     public void vmConfigTest() throws IOException {
         VMConfig vmConfig = proxmoxClient.getVmConfig(
                 "pve-e5",
-                501
+                1007
         );
         System.out.println(
                 vmConfig.getBootOrder().get(0)

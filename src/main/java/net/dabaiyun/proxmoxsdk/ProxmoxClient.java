@@ -391,8 +391,28 @@ public class ProxmoxClient {
         //读取结果并转换到list
         return objectMapper.readValue(
                 vmlistResult.getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<VMInfo>>() {
-                }
+                new TypeReference<List<VMInfo>>() {}
+        );
+    }
+
+    /**
+     * 读取指定节点指定存储下的指定类型数据
+     * @param nodeName 节点名称
+     * @param storage 存储区
+     * @param contentType 数据类型 enum: iso,image,backup
+     * @return
+     * @throws IOException
+     */
+    public List<StorageContent> getStorageContentList(String nodeName, String storage, String contentType) throws IOException {
+        //读取指定节点指定存储下的指定类型数据
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getStorage().get(storage)
+                .getContent().get(contentType)
+                .info();
+        //读取结果并转换到list
+        return objectMapper.readValue(
+                pveResult.getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<StorageContent>>() {}
         );
     }
 
