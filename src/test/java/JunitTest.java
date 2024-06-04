@@ -12,21 +12,95 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JunitTest {
 
     private final ProxmoxClient proxmoxClient
 //            = null;
             = new ProxmoxClient(
-            "192.168.77.8",
+            "192.168.77.9",
             8006,
             "root",
             "BayMax10281028"
     );
 
-    private final String nodename = "pve-e5";
+    private final String nodename = "pve-129k";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void cloneTest() throws IOException {
+        String upid = proxmoxClient.cloneNewVm(
+                nodename,
+                102,
+                1005,
+                "nvme0n1p1",
+                "test-error",
+                "create-test"
+        );
+        System.out.println(
+                upid
+        );
+    }
+
+    @Test
+    public void logTest() {
+        String input = "INFO: creating vzdump archive '/var/lib/vz/dump/vzdump-qemu-104-2024_04_21-14_53_32.vma.zst'";
+        String regex = "'([^']*)'"; // 这个正则表达式会匹配两个单引号之间的所有非单引号字符
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(input);
+
+        if (matcher.find()) {
+            String filepath = matcher.group(1); // group(1)捕获的是第一个括号内的内容
+            System.out.println("捕获到的内容: " + filepath);
+        } else {
+            System.out.println("没有找到匹配的内容");
+        }
+    }
+
+    @Test
+    public void backupTest() throws IOException {
+        PveClient pveClient = new PveClient(
+                "192.168.77.8",
+                8006
+        );
+        pveClient.login(
+                "root",
+                "BayMax10281028"
+        );
+        // UPID:pve-i5:003603CE:0785EA41:6624B7EC:vzdump:104:root@pam:
+//        PveResult pveResult = pveClient.getNodes().get("pve-i5").getTasks()
+//                .nodeTasks();
+//                .get("UPID:pve-i5:003603CE:0785EA41:6624B7EC:vzdump:104:root@pam:")
+//                .getStatus().readTaskStatus();
+//        .getLog().readTaskLog();
+
+        // 发起备份请求参数
+        // storage=local
+        // vmid=104
+        // mode=snapshot
+        // remove=0
+        // compress=zstd
+        // notes-template=%7B%7Bguestname%7D%7D
+
+        PveResult pveResult = pveClient.getNodes().get("pve-i5")
+                .getVzdump().vzdump(
+                        null, null,
+                        "zstd", null, null, null, null, null, null, null, null,
+                        "snapshot",
+                        "%7B%7Bguestname%7D%7D-with-protected", null, null, null,
+                        true, null, null,
+                        false, null, null, null, null, null,
+                        "local", null,
+                        "104", null
+                );
+        System.out.println(
+                pveResult.getResponse().toString()
+        );
     }
 
     @Test
