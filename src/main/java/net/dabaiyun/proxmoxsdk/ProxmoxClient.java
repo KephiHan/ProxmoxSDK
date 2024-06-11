@@ -318,12 +318,24 @@ public class ProxmoxClient {
 
             String configLine = dataJsonObject.getString(diskDevice);
             String[] configList = configLine.split(",");
-            //存储:VMID/文件名
-            String[] storageAndFilePath = configList[0].split(":");
-            String[] vmidFolderAndFileName = storageAndFilePath[1].split("/");
-            String storage = storageAndFilePath[0];
-            String folder = vmidFolderAndFileName[0];
-            String filename = vmidFolderAndFileName[1];
+
+
+            String storage = "";
+            String folder = "";
+            String filename = "";
+            //检查是否是空CD ROM
+            if ("none".equals(configList[0])){
+                storage = "none";
+                folder = "none";
+                filename = "none";
+            }else{
+                //存储:VMID/文件名
+                String[] storageAndFilePath = configList[0].split(":");
+                String[] vmidFolderAndFileName = storageAndFilePath[1].split("/");
+                storage = storageAndFilePath[0];
+                folder = vmidFolderAndFileName[0];
+                filename = vmidFolderAndFileName[1];
+            }
 
             String deviceTypeString = diskDevice;
             //去除设备名末尾数字

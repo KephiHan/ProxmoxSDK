@@ -20,15 +20,36 @@ public class JunitTest {
     private final ProxmoxClient proxmoxClient
 //            = null;
             = new ProxmoxClient(
-            "192.168.77.9",
-            8006,
+            "js-dx-1.dabaiyun.net",
+            8706,
             "root",
             "BayMax10281028"
     );
 
-    private final String nodename = "pve-129k";
+    private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void getVmConfigTest() throws IOException {
+        VMConfig vmConfig = proxmoxClient.getVmConfig(nodename, 202);
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(vmConfig)
+        );
+    }
+
+    @Test
+    public void getVmConfigTestRawData() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+        PveResult pveResult = pveClient.getNodes().get(nodename).getQemu().get(202)
+                .getConfig().vmConfig();
+        System.out.println(pveResult.getResponse().toString());
     }
 
     @Test
