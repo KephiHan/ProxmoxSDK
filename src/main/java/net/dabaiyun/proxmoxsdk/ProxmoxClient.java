@@ -1064,15 +1064,16 @@ public class ProxmoxClient {
      * @return 成功
      */
     public boolean setVmCloudInitUserPassword(String nodeName, int vmid, String username, String password) throws IOException {
+        String encodedPassword = URLEncoder.encode(password, StandardCharsets.UTF_8);
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getConfig().updateVm(
                         null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        password, null, username,
+                        encodedPassword, null, username,
                         null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
-        return true;
+        return pveResult.isSuccessStatusCode();
     }
 
     /**

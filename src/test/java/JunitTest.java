@@ -1,3 +1,4 @@
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
@@ -29,6 +30,66 @@ public class JunitTest {
     private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void setCloudInitUserPasswordTset() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+
+        String username = "root";
+        String password = "Jjs_20020226&";
+
+        password = URLEncoder.encode(password, StandardCharsets.UTF_8);
+
+        System.out.println("EncodedPassword: " + password);
+
+        PveResult pveResult = null;
+        try {
+            pveResult = pveClient.getNodes().get(nodename)
+                    .getQemu().get(1008)
+                    .getConfig().updateVm(
+                            null, null, null, null, null, null, null, null, null, null, null, null, null,
+                            password, null, username,
+                            null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                    );
+        } catch (IOException e) {
+            System.out.println(
+                    new ObjectMapper().writerWithDefaultPrettyPrinter()
+                            .writeValueAsString(e)
+            );
+        }
+
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(pveResult)
+        );
+    }
+
+    @Test
+    public void diskTest() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+
+        PveResult pveResult = pveClient.getNodes().get(nodename)
+                        .getQemu().get(1008).getResize()
+                        .resizeVm("virtio0","50G");
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                pveResult.getResponse()
+                        )
+//                pveResult.getResponse()
+        );
+
+
+
     }
 
     @Test
@@ -128,8 +189,8 @@ public class JunitTest {
     public void storageContentTest() throws IOException {
         List<StorageContent> storageContentList =
                 proxmoxClient.getStorageContentList(
-                        "pve-i5",
-                        "local",
+                        "pve-e5",
+                        "HDD-Raid6",
                         StorageContent.ContentType_IMAGE
                 );
         System.out.println(
@@ -177,7 +238,7 @@ public class JunitTest {
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
                         .writeValueAsString(
-                                proxmoxClient.getNodeStorageInfo(nodename, "nvme0n1p1")
+                                proxmoxClient.getNodeStorageInfo(nodename, "HDD-Raid6")
                         )
         );
     }
