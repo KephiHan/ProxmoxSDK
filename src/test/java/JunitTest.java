@@ -1,4 +1,5 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
@@ -30,6 +31,24 @@ public class JunitTest {
     private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void backupTestRaw() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+
+        PveResult pveResult = pveClient.getNodes().get("pve-e5")
+                .getStorage().get("HDD-Raid6")
+                .getContent().get(StorageContent.ContentType_BACKUP)
+                .info();
+        //读取结果并转换到list
+        System.out.println(
+                pveResult.getResponse().getJSONArray("data").toString()
+        );
     }
 
     @Test
@@ -191,7 +210,7 @@ public class JunitTest {
                 proxmoxClient.getStorageContentList(
                         "pve-e5",
                         "HDD-Raid6",
-                        StorageContent.ContentType_IMAGE
+                        StorageContent.ContentType_ISO
                 );
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
