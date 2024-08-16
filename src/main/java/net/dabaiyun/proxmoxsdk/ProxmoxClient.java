@@ -191,7 +191,7 @@ public class ProxmoxClient {
      * @param pveUserName 授予的PVE用户
      * @return 成功返回true，失败抛异常
      */
-    public boolean setPermission(int vmid, String pveUserName, String role) throws IOException {
+    public boolean setPermission( int vmid, String pveUserName, String role) throws IOException {
         PveResult pveResult = pveClient.getAccess().getAcl().updateAcl(
                 "/vms/" + vmid,
                 role,
@@ -202,6 +202,26 @@ public class ProxmoxClient {
                 pveUserName
         );
         return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * 备份恢复VM
+     *
+     * @param nodeName    节点名称
+     * @param vmid VMID
+     * @param archive 备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
+     * @return 恢复Job的UPID
+     */
+    public String restoreVm(String nodeName, int vmid, String archive) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getQemu().createVm(
+                        vmid, null,null,null,null,
+                        archive,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null, null,null,null,null,null,null,
+                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        null, null,null,null,null,null,null,null,null
+                );
+        return pveResult.getResponse().getString("data");
     }
 
 

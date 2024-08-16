@@ -41,13 +41,22 @@ public class JunitTest {
         );
         pveClient.login("root", "BayMax10281028");
 
+//        PveResult pveResult = pveClient.getNodes().get("pve-e5")
+//                .getStorage().get("HDD-Raid6")
+//                .getContent().get(StorageContent.ContentType_BACKUP)
+//                .info();
         PveResult pveResult = pveClient.getNodes().get("pve-e5")
-                .getStorage().get("HDD-Raid6")
-                .getContent().get(StorageContent.ContentType_BACKUP)
-                .info();
+                .getQemu().createVm(
+                        1007, null,null,null,null,
+                        "HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null, null,null,null,null,null,null,
+                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        null, null,null,null,null,null,null,null,null
+                        );
+
         //读取结果并转换到list
         System.out.println(
-                pveResult.getResponse().getJSONArray("data").toString()
+                pveResult.getResponse().toString()
         );
     }
 
