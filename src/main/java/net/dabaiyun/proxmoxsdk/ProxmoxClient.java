@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
+import lombok.SneakyThrows;
 import net.dabaiyun.proxmoxsdk.entity.*;
 import org.json.JSONObject;
 
@@ -127,6 +128,51 @@ public class ProxmoxClient {
         storageInfo.setStorage(storageName);
         return storageInfo;
     }
+
+//    public List<TaskInfo> getNodeTaskInfoList(String nodeName,
+//                                              Boolean errorOnly,
+//                                              Integer limit,
+//                                              Integer sinceUnixTimeStrap,
+//                                              String source,
+//                                              Integer vmid
+//    ){
+//        PveResult pveResult = pveClient.getNodes().get(nodeName)
+//
+//    }
+
+    /**
+     * 读取节点上的任务列表
+     * 默认列出50条
+     *
+     * @param nodeName 节点
+     * @return 任务列表
+     * @throws IOException e
+     */
+    public List<TaskInfo> getNodeTaskInfoList(String nodeName) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getTasks().nodeTasks();
+        return objectMapper.readValue(
+                pveResult.getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<TaskInfo>>() {}
+        );
+    }
+
+    /**
+     * 读取节点上指定的任务详情
+     * @param nodeName  节点
+     * @param upid      任务ID
+     * @return 任务详情
+     * @throws IOException e
+     */
+    public TaskInfo getNodeTaskInfo(String nodeName, String upid) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getTasks().get(upid).getStatus().readTaskStatus();
+        return objectMapper.readValue(
+                pveResult.getResponse().getJSONObject("data").toString(),
+                new TypeReference<TaskInfo>() {}
+        );
+    }
+
 
     /**
      * 检查认证cookie是否有效
@@ -1348,14 +1394,14 @@ public class ProxmoxClient {
      * 等待任务完成
      *
      * @param upid     任务id
-     * @param waitStep 检查间隔
-     * @param timeOut  超时时间
+     * @param waitStep 检查间隔 毫秒
+     * @param timeOut  超时时间 毫秒
      */
     public boolean waitTaskFinish(String upid, int waitStep, int timeOut) throws IOException {
         return pveClient.waitForTaskToFinish(
                 upid,
                 waitStep,
-                timeOut //秒
+                timeOut
         );
     }
 

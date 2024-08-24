@@ -1,13 +1,8 @@
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
 import net.dabaiyun.proxmoxsdk.ProxmoxClient;
-import net.dabaiyun.proxmoxsdk.entity.RrdData;
-import net.dabaiyun.proxmoxsdk.entity.StorageContent;
-import net.dabaiyun.proxmoxsdk.entity.UserRole;
-import net.dabaiyun.proxmoxsdk.entity.VMConfig;
+import net.dabaiyun.proxmoxsdk.entity.*;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -34,6 +29,61 @@ public class JunitTest {
     }
 
     @Test
+    public void getTaskListTest() throws IOException {
+        List<TaskInfo> taskInfoList = proxmoxClient.getNodeTaskInfoList("pve-e5");
+
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                taskInfoList
+                        )
+        );
+    }
+
+    @Test
+    public void getTaskListTestRaw() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+
+        PveResult pveResult = pveClient.getNodes().get("pve-e5")
+                .getTasks().nodeTasks();
+
+        System.out.println(
+                pveResult.getResponse().toString()
+        );
+    }
+
+    @Test
+    public void getTaskInfoTest() throws IOException {
+        TaskInfo taskInfo = proxmoxClient.getNodeTaskInfo("pve-e5","UPID:pve-e5:000F6821:01BEC4D9:66C7A6D5:vzdump::root@pam:" );
+
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(taskInfo)
+        );
+    }
+
+    @Test
+    public void getTaskInfoTestRaw() throws IOException {
+        PveClient pveClient = new PveClient(
+                "js-dx-1.dabaiyun.net",
+                8706
+        );
+        pveClient.login("root", "BayMax10281028");
+
+        PveResult pveResult = pveClient.getNodes().get("pve-e5")
+                .getTasks().get("UPID:pve-e5:000F6821:01BEC4D9:66C7A6D5:vzdump::root@pam:")
+                .getStatus().readTaskStatus();
+
+        System.out.println(
+                pveResult.getResponse().toString()
+        );
+    }
+
+    @Test
     public void backupTestRaw() throws IOException {
         PveClient pveClient = new PveClient(
                 "js-dx-1.dabaiyun.net",
@@ -47,12 +97,12 @@ public class JunitTest {
 //                .info();
         PveResult pveResult = pveClient.getNodes().get("pve-e5")
                 .getQemu().createVm(
-                        1007, null,null,null,null,
-                        "HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null, null,null,null,null,null,null,
-                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        null, null,null,null,null,null,null,null,null
-                        );
+                        1007, null, null, null, null,
+                        "HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        true, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null
+                );
 
         //读取结果并转换到list
         System.out.println(
@@ -106,8 +156,8 @@ public class JunitTest {
         pveClient.login("root", "BayMax10281028");
 
         PveResult pveResult = pveClient.getNodes().get(nodename)
-                        .getQemu().get(1008).getResize()
-                        .resizeVm("virtio0","50G");
+                .getQemu().get(1008).getResize()
+                .resizeVm("virtio0", "50G");
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
                         .writeValueAsString(
@@ -115,7 +165,6 @@ public class JunitTest {
                         )
 //                pveResult.getResponse()
         );
-
 
 
     }
