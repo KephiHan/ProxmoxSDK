@@ -10,6 +10,7 @@ import net.dabaiyun.proxmoxsdk.entity.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -367,6 +368,7 @@ public class ProxmoxClient {
         diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_SATA);
         diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_SCSI);
         diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_VirtIO);
+        diskDeviceTypeList.add(VMConfig.DiskConfig.DeviceType_Unused);
 
         for (String deviceType : diskDeviceTypeList) {
             for (String key : dataJsonObject.keySet()) {
@@ -415,6 +417,15 @@ public class ProxmoxClient {
             diskConfig.setStorage(storage);
             diskConfig.setFolder(folder);
             diskConfig.setFilename(filename);
+
+            //解析设备序号
+            for (String type : diskDeviceTypeList) {
+                if(diskDevice.startsWith(type)){
+                    String numberStr = diskDevice.replace(type, "");
+                    diskConfig.setDeviceNumber(Integer.valueOf(numberStr));
+                    break;
+                }
+            }
 
             for (int configListIndex = 1; configListIndex < configList.length; configListIndex++) {
                 String[] keyAndValue = configList[configListIndex].split("=");
@@ -860,6 +871,96 @@ public class ProxmoxClient {
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getUnlink().unlink(hardwareName);
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * 直接删除VM硬件设备
+     *
+     * @param nodeName 节点
+     * @param vmid     VMID
+     * @return success
+     */
+    public boolean deleteHardware(String nodeName, int vmid, String hardwareName) throws IOException {
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getUnlink().unlink(hardwareName, true);
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * 重新分配磁盘给另一个VM
+     *
+     * @param nodeName      节点名
+     * @param sourceVmid    源vmid
+     * @param sourceDisk    源磁盘设备号
+     * @param targetVmid    目标VMID
+     * @param targetDisk    目标磁盘设备号
+     * @return UPID
+     * @throws IOException  e
+     */
+    public String moveDisk(String nodeName, int sourceVmid, String sourceDisk,int targetVmid, String targetDisk) throws IOException {
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(sourceVmid)
+                .getMoveDisk().moveVmDisk(
+                        sourceDisk,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        targetDisk,
+                        targetVmid
+                );
+        return pveResult.getResponse().getString("data");
+    }
+
+    /**
+     * 设置引导磁盘
+     * @param nodeName  节点
+     * @param vmid      VMID
+     * @param digest    配置文件SHA1（从VMConfig获取）
+     * @param orderList 引导顺序列表
+     * @return          设置成功
+     * @throws IOException  e
+     */
+    public boolean setBootDisk(String nodeName, int vmid, String digest, List<String> orderList) throws IOException {
+        //生成引导序列配置文本行
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("order=");
+        //遍历引导列表，构建配置文本行
+        Iterator<String> orderIterator = orderList.iterator();
+        while (orderIterator.hasNext()) {
+            stringBuilder.append(orderIterator.next());
+            if (orderIterator.hasNext()){
+                stringBuilder.append(";");
+            }
+        }
+
+        String encodedBootLine = URLEncoder.encode(stringBuilder.toString(), StandardCharsets.UTF_8.name());
+
+        if (orderList.isEmpty()) {
+            encodedBootLine = " ";
+        }
+
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(
+                        null, null,null,null,null,null,null,null,null,
+                        encodedBootLine,null,
+                        null,null,null,null,null,null,null,
+                        null,null,null,null,
+                        digest,
+                        null,null,null,null,null,null,null,null,null,null,null,
+                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
+                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
+                );
+
         return pveResult.isSuccessStatusCode();
     }
 

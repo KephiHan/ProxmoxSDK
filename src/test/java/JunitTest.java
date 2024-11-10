@@ -20,10 +20,15 @@ public class JunitTest {
             "js-dx-1.dabaiyun.net",
             8706,
             "root",
-            "BayMax10281028"
+            "BayMax@201028"
+//            = new ProxmoxClient(
+//            "192.168.77.8",
+//            8006,
+//            "root",
+//            "BayMax@201028"
     );
 
-    private final String nodename = "pve-e5";
+    private final String nodename = "pve-i3";
 
     public JunitTest() throws IOException {
     }
@@ -171,7 +176,7 @@ public class JunitTest {
 
     @Test
     public void getVmConfigTest() throws IOException {
-        VMConfig vmConfig = proxmoxClient.getVmConfig(nodename, 202);
+        VMConfig vmConfig = proxmoxClient.getVmConfig("pve-e5", 1002);
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
                         .writeValueAsString(vmConfig)
@@ -446,8 +451,59 @@ public class JunitTest {
         System.out.println(
                 proxmoxClient.unlinkHardware(
                         "pve-e5",
-                        501,
+                        1002,
                         "unused0"
+                )
+        );
+
+    }
+
+    @Test
+    public void deleteHardwareTest() throws IOException {
+        System.out.println(
+                proxmoxClient.deleteHardware(
+                        "pve-e5",
+                        1002,
+                        "scsi0"
+                )
+        );
+    }
+
+    @Test
+    public void moveVMDiskTest() throws IOException {
+        System.out.println(
+                proxmoxClient.moveDisk(
+                        "pve-i3",
+                        9001,
+                        "scsi0",
+                        201,
+                        "scsi0"
+                )
+        );
+    }
+
+    @Test
+    public void getVmStatusTest() throws IOException {
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.getVmConfig(
+                                        "pve-i3",
+                                        9001
+                                )
+                        )
+        );
+    }
+
+    @Test
+    public void setBootDiskTest() throws IOException {
+        VMConfig vmConfig = proxmoxClient.getVmConfig("pve-i3", 201);
+        List<String> orderList = new ArrayList<>();
+//        orderList.add("scsi0");
+//        orderList.add("net0");
+        System.out.println(
+                proxmoxClient.setBootDisk(
+                        "pve-i3", 201, vmConfig.getDigest(), orderList
                 )
         );
     }

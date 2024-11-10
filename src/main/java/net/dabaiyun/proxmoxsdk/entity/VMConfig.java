@@ -3,11 +3,7 @@ package net.dabaiyun.proxmoxsdk.entity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VMConfig {
@@ -90,8 +86,10 @@ public class VMConfig {
         public static final String DeviceType_SATA      = "sata";
         public static final String DeviceType_SCSI      = "scsi";
         public static final String DeviceType_VirtIO    = "virtio";
+        public static final String DeviceType_Unused    = "unused";
 
         private String deviceType;
+        private Integer deviceNumber;
         private String storage;
         private String folder;
         private String filename;
@@ -152,35 +150,22 @@ public class VMConfig {
     }
 
 
-    /**
-     * 根据boot字符串解析第一引导磁盘
-     *
-     * @return 磁盘位置，例如virtio0 scsi0 ide1
-     */
-    public String getFirstBootDisk() {
-        /*
-            boot样例   order=virtio0;ide2
-         */
-        if (this.boot == null) {
-            return null;
-        }
-        String[] bootDrivers = this.boot.split(";");
-        //如果有数据，则解析等号=
-        if (bootDrivers.length >= 1) {
-            String[] orderAndDriver = bootDrivers[0].split("=");
-            //如果只分割出了一个字符串，直接返回
-            if (orderAndDriver.length == 1) {
-                return orderAndDriver[0];
-            } else if (orderAndDriver.length == 2) {
-                //如果分割出两个，则返回第二个字符串
-                return orderAndDriver[1];
-            } else {
-                //出错情况，返回null
-                return null;
-            }
-        }
-        //出错情况，返回null
-        return null;
-    }
+//    /**
+//     * 根据boot字符串解析第一引导磁盘
+//     */
+//    public void analyzeBootOrderList() {
+//        /*
+//            boot样例   order=virtio0;ide2;net0
+//         */
+//        if (this.boot == null || Objects.equals(this.boot, "")) {
+//            return;
+//        }
+//        String[] orderAndDevices = this.boot.split("=");
+//        //如果有数据，则解析分号;
+//        if (orderAndDevices.length > 1){
+//            String[] devices = orderAndDevices[1].split(";");
+//            this.bootOrder.addAll(Arrays.asList(devices));
+//        }
+//    }
 
 }
