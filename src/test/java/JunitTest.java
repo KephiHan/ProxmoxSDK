@@ -28,9 +28,23 @@ public class JunitTest {
 //            "BayMax@201028"
     );
 
-    private final String nodename = "pve-i3";
+    private final String nodename = "pve-e5";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void createNewDiskTest() throws IOException {
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.createNewDisk(
+                                        nodename, 1002,
+                                        "virtio", 11,
+                                        "NFS-DL380", 64
+                                )
+                        )
+        );
     }
 
     @Test

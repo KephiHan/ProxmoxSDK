@@ -160,8 +160,9 @@ public class ProxmoxClient {
 
     /**
      * 读取节点上指定的任务详情
-     * @param nodeName  节点
-     * @param upid      任务ID
+     *
+     * @param nodeName 节点
+     * @param upid     任务ID
      * @return 任务详情
      * @throws IOException e
      */
@@ -238,7 +239,7 @@ public class ProxmoxClient {
      * @param pveUserName 授予的PVE用户
      * @return 成功返回true，失败抛异常
      */
-    public boolean setPermission( int vmid, String pveUserName, String role) throws IOException {
+    public boolean setPermission(int vmid, String pveUserName, String role) throws IOException {
         PveResult pveResult = pveClient.getAccess().getAcl().updateAcl(
                 "/vms/" + vmid,
                 role,
@@ -254,19 +255,19 @@ public class ProxmoxClient {
     /**
      * 备份恢复VM
      *
-     * @param nodeName    节点名称
-     * @param vmid VMID
-     * @param archive 备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
+     * @param nodeName 节点名称
+     * @param vmid     VMID
+     * @param archive  备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
      * @return 恢复Job的UPID
      */
     public String restoreVm(String nodeName, int vmid, String archive) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
-                        vmid, null,null,null,null,
-                        archive,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null, null,null,null,null,null,null,
-                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        null, null,null,null,null,null,null,null,null
+                        vmid, null, null, null, null,
+                        archive, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        true, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null
                 );
         return pveResult.getResponse().getString("data");
     }
@@ -392,11 +393,11 @@ public class ProxmoxClient {
             String folder = "";
             String filename = "";
             //检查是否是空CD ROM
-            if ("none".equals(configList[0])){
+            if ("none".equals(configList[0])) {
                 storage = "none";
                 folder = "none";
                 filename = "none";
-            }else{
+            } else {
                 //存储:VMID/文件名
                 String[] storageAndFilePath = configList[0].split(":");
                 String[] vmidFolderAndFileName = storageAndFilePath[1].split("/");
@@ -420,7 +421,7 @@ public class ProxmoxClient {
 
             //解析设备序号
             for (String type : diskDeviceTypeList) {
-                if(diskDevice.startsWith(type)){
+                if (diskDevice.startsWith(type)) {
                     String numberStr = diskDevice.replace(type, "");
                     diskConfig.setDeviceNumber(Integer.valueOf(numberStr));
                     break;
@@ -480,14 +481,16 @@ public class ProxmoxClient {
         //读取结果并转换到list
         return objectMapper.readValue(
                 vmlistResult.getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<VMInfo>>() {}
+                new TypeReference<List<VMInfo>>() {
+                }
         );
     }
 
     /**
      * 读取指定节点指定存储下的指定类型数据
-     * @param nodeName 节点名称
-     * @param storage 存储区
+     *
+     * @param nodeName    节点名称
+     * @param storage     存储区
      * @param contentType 数据类型 enum: iso,image,backup
      * @return
      * @throws IOException
@@ -501,7 +504,8 @@ public class ProxmoxClient {
         //读取结果并转换到list
         return objectMapper.readValue(
                 pveResult.getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<StorageContent>>() {}
+                new TypeReference<List<StorageContent>>() {
+                }
         );
     }
 
@@ -709,6 +713,138 @@ public class ProxmoxClient {
     }
 
     /**
+     * 创建新的磁盘
+     *
+     * @param nodeName     PVE节点名
+     * @param vmid         VMID
+     * @param deviceType   设备类型 ide sata scsi virtio
+     * @param deviceNumber 设备序号
+     * @param storage      存储区
+     * @param sizeGb       磁盘大小 GB
+     * @return success?
+     * @throws IOException e
+     */
+    public boolean createNewDisk(
+            String nodeName, int vmid,
+            String deviceType, int deviceNumber,
+            String storage, int sizeGb
+    ) throws IOException {
+        return this.createNewDisk(
+                nodeName, vmid,
+                deviceType, deviceNumber,
+                storage, sizeGb, "qcow2",
+                true, true, false,
+                false, false, false
+        );
+    }
+
+    /**
+     * 创建新的磁盘
+     *
+     * @param nodeName     PVE节点名
+     * @param vmid         VMID
+     * @param deviceType   设备类型 ide sata scsi virtio
+     * @param deviceNumber 设备序号
+     * @param storage      存储区
+     * @param sizeGb       磁盘大小 GB
+     * @param format       格式 raw vmdk qcow2
+     * @param iothread     开启独立IO线程
+     * @param backup       备份
+     * @param discard      关机后丢弃修改
+     * @param replicate    参与复制
+     * @param readonly     只读
+     * @param ssd          固态硬盘仿真
+     * @return success?
+     * @throws IOException e
+     */
+    public boolean createNewDisk(
+            String nodeName, int vmid,
+            String deviceType, int deviceNumber,
+            String storage, int sizeGb, String format,
+            boolean iothread, boolean backup, boolean discard,
+            boolean replicate, boolean readonly, boolean ssd
+    ) throws IOException {
+        //初始化磁盘配置文本
+        StringBuilder configLineBuilder = new StringBuilder();
+        configLineBuilder
+                .append(storage).append(":").append(sizeGb)
+                .append(",").append("format=").append(format);
+        if (iothread)
+            configLineBuilder.append(",").append("iothread=").append("on");
+        if (!backup)
+            configLineBuilder.append(",").append("backup=").append("0");
+        if (discard)
+            configLineBuilder.append(",").append("discard=").append("on");
+        if (!replicate)
+            configLineBuilder.append(",").append("replicate=").append("no");
+        if (readonly)
+            configLineBuilder.append(",").append("ro=").append("on");
+        if (ssd)
+            configLineBuilder.append(",").append("ssd=").append("on");
+        //转码UrlCode
+        String encodedConfigLine = URLEncoder.encode(configLineBuilder.toString(), StandardCharsets.UTF_8);
+        //参数MAP
+        Map<Integer, String> diskMap = new HashMap<>();
+        diskMap.put(deviceNumber, encodedConfigLine);
+        //根据不同的设备类型，参数放在不同位置
+        switch (deviceType) {
+            case VMConfig.DiskConfig.DeviceType_IDE -> {
+                PveResult pveResult = pveClient
+                        .getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null,
+                                diskMap, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null
+                        );
+                return pveResult.isSuccessStatusCode();
+            }
+            case VMConfig.DiskConfig.DeviceType_SATA -> {
+                PveResult pveResult = pveClient
+                        .getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                diskMap,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null
+                        );
+                return pveResult.isSuccessStatusCode();
+            }
+            case VMConfig.DiskConfig.DeviceType_SCSI -> {
+                PveResult pveResult = pveClient
+                        .getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null,
+                                diskMap, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null
+                        );
+                return pveResult.isSuccessStatusCode();
+            }
+            case VMConfig.DiskConfig.DeviceType_VirtIO -> {
+                PveResult pveResult = pveClient
+                        .getNodes().get(nodeName)
+                        .getQemu().get(vmid)
+                        .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                null,
+                                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                                diskMap, null, null, null
+                        );
+                return pveResult.isSuccessStatusCode();
+            }
+            default -> throw new IllegalStateException("Unexpected device type: " + deviceType);
+        }
+    }
+
+    /**
      * 更换VM 虚拟光驱
      *
      * @param nodeName 节点
@@ -892,15 +1028,15 @@ public class ProxmoxClient {
     /**
      * 重新分配磁盘给另一个VM
      *
-     * @param nodeName      节点名
-     * @param sourceVmid    源vmid
-     * @param sourceDisk    源磁盘设备号
-     * @param targetVmid    目标VMID
-     * @param targetDisk    目标磁盘设备号
+     * @param nodeName   节点名
+     * @param sourceVmid 源vmid
+     * @param sourceDisk 源磁盘设备号
+     * @param targetVmid 目标VMID
+     * @param targetDisk 目标磁盘设备号
      * @return UPID
-     * @throws IOException  e
+     * @throws IOException e
      */
-    public String moveDisk(String nodeName, int sourceVmid, String sourceDisk,int targetVmid, String targetDisk) throws IOException {
+    public String moveDisk(String nodeName, int sourceVmid, String sourceDisk, int targetVmid, String targetDisk) throws IOException {
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(sourceVmid)
@@ -920,12 +1056,13 @@ public class ProxmoxClient {
 
     /**
      * 设置引导磁盘
+     *
      * @param nodeName  节点
      * @param vmid      VMID
      * @param digest    配置文件SHA1（从VMConfig获取）
      * @param orderList 引导顺序列表
-     * @return          设置成功
-     * @throws IOException  e
+     * @return 设置成功
+     * @throws IOException e
      */
     public boolean setBootDisk(String nodeName, int vmid, String digest, List<String> orderList) throws IOException {
         //生成引导序列配置文本行
@@ -935,7 +1072,7 @@ public class ProxmoxClient {
         Iterator<String> orderIterator = orderList.iterator();
         while (orderIterator.hasNext()) {
             stringBuilder.append(orderIterator.next());
-            if (orderIterator.hasNext()){
+            if (orderIterator.hasNext()) {
                 stringBuilder.append(";");
             }
         }
@@ -950,15 +1087,15 @@ public class ProxmoxClient {
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
                 .getConfig().updateVm(
-                        null, null,null,null,null,null,null,null,null,
-                        encodedBootLine,null,
-                        null,null,null,null,null,null,null,
-                        null,null,null,null,
+                        null, null, null, null, null, null, null, null, null,
+                        encodedBootLine, null,
+                        null, null, null, null, null, null, null,
+                        null, null, null, null,
                         digest,
-                        null,null,null,null,null,null,null,null,null,null,null,
-                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,
-                        null,null,null,null,null,null,null,null,null,null,null,null,null,null,null
+                        null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
 
         return pveResult.isSuccessStatusCode();
@@ -1280,13 +1417,15 @@ public class ProxmoxClient {
 
         switch (ipConfigTypeV4) {
             case VMConfig.NetConfig.IpConfigTypeV4_DHCP -> ipv4configLine = "ip=dhcp";
-            case VMConfig.NetConfig.IpConfigTypeV4_STATIC -> ipv4configLine = "ip=" + ipv4 + "/" + netmaskBitV4 + ",gw=" + gatewayV4;
+            case VMConfig.NetConfig.IpConfigTypeV4_STATIC ->
+                    ipv4configLine = "ip=" + ipv4 + "/" + netmaskBitV4 + ",gw=" + gatewayV4;
         }
 
         switch (ipConfigTypeV6) {
             case VMConfig.NetConfig.IpConfigTypeV6_SLAAC -> ipv6configLine = "ip6=auto";
             case VMConfig.NetConfig.IpConfigTypeV6_DHCP -> ipv6configLine = "ip6=dhcp";
-            case VMConfig.NetConfig.IpConfigTypeV6_STATIC -> ipv6configLine = "ip6=" + ipv6 + "/" + netmaskBitV6 + ",gw6=" + gatewayV6;
+            case VMConfig.NetConfig.IpConfigTypeV6_STATIC ->
+                    ipv6configLine = "ip6=" + ipv6 + "/" + netmaskBitV6 + ",gw6=" + gatewayV6;
         }
 
         String configLine = URLEncoder.encode(ipv4configLine + "," + ipv6configLine, StandardCharsets.UTF_8);

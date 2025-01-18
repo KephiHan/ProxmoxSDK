@@ -112,7 +112,7 @@ public class VMConfig {
                     .append(storage).append(":").append(folder).append("/").append(filename);
             if (iothread)
                 configLineBuilder.append(",").append("iothread=").append("1");
-            if (backup)
+            if (!backup)
                 configLineBuilder.append(",").append("backup=").append("0");
             if (discard)
                 configLineBuilder.append(",").append("discard=").append("on");
@@ -125,8 +125,7 @@ public class VMConfig {
             if (isCDROM)
                 configLineBuilder.append(",").append("media=").append("cdrom");
             if (sizeBytes != 0) {
-                configLineBuilder.append(",").append("size=")
-                        .append(diskSizeToHumanly(sizeBytes));
+                configLineBuilder.append(",").append("size=").append(diskSizeToHumanly(sizeBytes));
             }
 
             return configLineBuilder.toString();
