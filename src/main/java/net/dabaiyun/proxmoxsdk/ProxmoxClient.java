@@ -734,7 +734,7 @@ public class ProxmoxClient {
                 deviceType, deviceNumber,
                 storage, sizeGb, "qcow2",
                 true, true, false,
-                false, false, false
+                true, false, false
         );
     }
 
