@@ -379,10 +379,20 @@ public class JunitTest {
     public void setCdromTest() throws IOException {
         System.out.println(
                 proxmoxClient.setVmCDROM(
-                        "pve-129k",
+                        "pve-e5",
                         1010,
                         "local",
                         "cn_windows_server_2016_x64_dvd_9718765_virtio.iso"
+                )
+        );
+    }
+
+    @Test
+    public void plugOutVmCdromTest() throws IOException {
+        System.out.println(
+                proxmoxClient.plugOutVmCDROM(
+                        "pve-e5",
+                        101
                 )
         );
     }

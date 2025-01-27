@@ -865,6 +865,28 @@ public class ProxmoxClient {
     }
 
     /**
+     * 弹出VM 虚拟光驱
+     *
+     * @param nodeName
+     * @param vmid
+     * @return 成功?
+     * @throws IOException
+     */
+    public boolean plugOutVmCDROM(String nodeName, int vmid) throws IOException {
+        String configLine = "none,media=cdrom";
+        String encodedConfigLine = URLEncoder.encode(configLine, StandardCharsets.UTF_8);
+//        VMConfig vmConfig = this.getVmConfig(nodeName, vmid);
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null,
+                        encodedConfigLine, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
      * 设置VM的os类型
      *
      * @param nodeName  节点
