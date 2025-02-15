@@ -257,16 +257,18 @@ public class ProxmoxClient {
      *
      * @param nodeName 节点名称
      * @param vmid     VMID
+     * @param storage  存储区
      * @param archive  备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
      * @return 恢复Job的UPID
      */
-    public String restoreVm(String nodeName, int vmid, String archive) throws IOException {
+    public String restoreVm(String nodeName, int vmid,String storage, String archive) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
                         vmid, null, null, null, null,
                         archive, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         true, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        storage, null, null, null, null, null,
                         null, null, null, null, null, null, null, null, null
                 );
         return pveResult.getResponse().getString("data");
