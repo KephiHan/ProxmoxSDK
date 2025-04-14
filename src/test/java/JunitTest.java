@@ -28,9 +28,25 @@ public class JunitTest {
 //            "BayMax@201028"
     );
 
-    private final String nodename = "pve-e5";
+    private final String nodename = "hp380-107";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void backUpTest() throws IOException {
+        System.out.println(
+                proxmoxClient.backUpVm(
+                        nodename,
+                        201,
+                        "NFS-DL380",
+                        "suspend",
+                        "lzo",
+                        true,
+                        true,
+                        "{{guestname}}"
+                        )
+        );
     }
 
     @Test
@@ -77,7 +93,7 @@ public class JunitTest {
 
     @Test
     public void getTaskInfoTest() throws IOException {
-        TaskInfo taskInfo = proxmoxClient.getNodeTaskInfo("pve-e5","UPID:pve-e5:000F6821:01BEC4D9:66C7A6D5:vzdump::root@pam:" );
+        TaskInfo taskInfo = proxmoxClient.getNodeTaskInfo("pve-e5", "UPID:pve-e5:000F6821:01BEC4D9:66C7A6D5:vzdump::root@pam:");
 
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()

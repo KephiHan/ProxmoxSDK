@@ -5,12 +5,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
-import lombok.SneakyThrows;
+import jdk.jfr.BooleanFlag;
 import net.dabaiyun.proxmoxsdk.entity.*;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -251,6 +250,42 @@ public class ProxmoxClient {
         );
         return pveResult.isSuccessStatusCode();
     }
+
+    /**
+     * 创建VM备份
+     * @param nodeName          节点
+     * @param vmid              VMID
+     * @param storage           存储区
+     * @param mode              模式       snapshot | suspend | stop
+     * @param compress          压缩方式    0 | 1 | gzip | lzo | zstd
+     * @param remove            删除旧的
+     * @param protected_        受保护的（不会被自动备份自动删除）
+     * @param notes_template    描述文本模板
+     * @return                  UPID
+     * @throws IOException      E
+     */
+    public String backUpVm(
+            String nodeName,
+            int vmid,
+            String storage,
+            String mode,
+            String compress,
+            Boolean remove,
+            Boolean protected_,
+            String notes_template
+    ) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getVzdump().vzdump(null, null,
+                        compress, null,null, null, null, null,null, null, null,
+                        mode,
+                        notes_template, null, null, null,
+                        protected_, null, null, remove,null, null, null, null, null,
+                        storage, null,
+                        String.valueOf(vmid), null
+                );
+        return pveResult.getResponse().getString("data");
+    }
+
 
     /**
      * 备份恢复VM
