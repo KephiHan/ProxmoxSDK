@@ -31,6 +31,7 @@ public class VMConfig {
     private List<String> bootOrder = new ArrayList<>();
     private Map<Integer, NetConfig> netDeviceMap = new HashMap<>();
     private Map<String, DiskConfig> diskConfigMap = new HashMap<>();
+    private Map<Integer, PciDeviceConfig> pciDeviceMap = new HashMap<>();
 
     @Data
     public static class NetConfig {
@@ -148,23 +149,14 @@ public class VMConfig {
         }
     }
 
+    @Data
+    public static class PciDeviceConfig {
 
-//    /**
-//     * 根据boot字符串解析第一引导磁盘
-//     */
-//    public void analyzeBootOrderList() {
-//        /*
-//            boot样例   order=virtio0;ide2;net0
-//         */
-//        if (this.boot == null || Objects.equals(this.boot, "")) {
-//            return;
-//        }
-//        String[] orderAndDevices = this.boot.split("=");
-//        //如果有数据，则解析分号;
-//        if (orderAndDevices.length > 1){
-//            String[] devices = orderAndDevices[1].split(";");
-//            this.bootOrder.addAll(Arrays.asList(devices));
-//        }
-//    }
+        private String pciBus;
+        private String mdev;
+        private Boolean pcie;
+        private Boolean rombar;
+    }
+
 
 }

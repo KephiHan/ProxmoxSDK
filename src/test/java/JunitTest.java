@@ -16,9 +16,14 @@ public class JunitTest {
 
     private final ProxmoxClient proxmoxClient
 //            = null;
+//            = new ProxmoxClient(
+//            "js-dx-1.dabaiyun.net",
+//            8706,
+//            "root",
+//            "BayMax@201028"
             = new ProxmoxClient(
-            "js-dx-1.dabaiyun.net",
-            8706,
+            "hz-dx-1.dabaiyun.net",
+            8736,
             "root",
             "BayMax@201028"
 //            = new ProxmoxClient(
@@ -31,6 +36,56 @@ public class JunitTest {
     private final String nodename = "hp380-107";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void setVmPciDeviceTest() throws IOException {
+        System.out.println(
+                proxmoxClient.setVmPcieDevice(
+                        "r730-216",
+                        1005,
+                        1,
+                        "0000:03:00.0",
+                        "nvidia-256",
+                        true,
+                        true,
+                        true
+                )
+        );
+    }
+
+    @Test
+    public void deletePciDeviceTest() throws IOException {
+        System.out.println(
+                proxmoxClient.deletePciDevice(
+                        "r730-216",
+                        1005,
+                        0
+                )
+        );
+    }
+
+    @Test
+    public void getPciDeviceListTest() throws IOException {
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.getPciDeviceList("r730-216")
+                        )
+        );
+    }
+
+    @Test
+    public void getPciMdevListTest() throws IOException {
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                .writeValueAsString(
+                        proxmoxClient.getPciMdeviceList(
+                                "r730-216",
+                                "0000:03:00.0"
+                        )
+                )
+        );
     }
 
     @Test
@@ -206,7 +261,7 @@ public class JunitTest {
 
     @Test
     public void getVmConfigTest() throws IOException {
-        VMConfig vmConfig = proxmoxClient.getVmConfig("pve-e5", 1002);
+        VMConfig vmConfig = proxmoxClient.getVmConfig("r730-216", 1005);
         System.out.println(
                 new ObjectMapper().writerWithDefaultPrettyPrinter()
                         .writeValueAsString(vmConfig)

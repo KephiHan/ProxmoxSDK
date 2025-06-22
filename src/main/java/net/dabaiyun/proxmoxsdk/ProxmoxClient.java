@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.corsinvest.proxmoxve.api.PveClient;
 import it.corsinvest.proxmoxve.api.PveResult;
-import jdk.jfr.BooleanFlag;
 import net.dabaiyun.proxmoxsdk.entity.*;
 import org.json.JSONObject;
 
@@ -123,7 +122,8 @@ public class ProxmoxClient {
                 .getStorage().get(storageName).getStatus().readStatus();
         StorageInfo storageInfo = objectMapper.readValue(
                 pveResult.getResponse().getJSONObject("data").toString(),
-                new TypeReference<StorageInfo>() {}
+                new TypeReference<StorageInfo>() {
+                }
         );
         storageInfo.setStorage(storageName);
         return storageInfo;
@@ -153,7 +153,8 @@ public class ProxmoxClient {
                 .getTasks().nodeTasks();
         return objectMapper.readValue(
                 pveResult.getResponse().getJSONArray("data").toString(),
-                new TypeReference<List<TaskInfo>>() {}
+                new TypeReference<List<TaskInfo>>() {
+                }
         );
     }
 
@@ -170,7 +171,8 @@ public class ProxmoxClient {
                 .getTasks().get(upid).getStatus().readTaskStatus();
         return objectMapper.readValue(
                 pveResult.getResponse().getJSONObject("data").toString(),
-                new TypeReference<TaskInfo>() {}
+                new TypeReference<TaskInfo>() {
+                }
         );
     }
 
@@ -253,16 +255,17 @@ public class ProxmoxClient {
 
     /**
      * 创建VM备份
-     * @param nodeName          节点
-     * @param vmid              VMID
-     * @param storage           存储区
-     * @param mode              模式       snapshot | suspend | stop
-     * @param compress          压缩方式    0 | 1 | gzip | lzo | zstd
-     * @param remove            删除旧的
-     * @param protected_        受保护的（不会被自动备份自动删除）
-     * @param notes_template    描述文本模板
-     * @return                  UPID
-     * @throws IOException      E
+     *
+     * @param nodeName       节点
+     * @param vmid           VMID
+     * @param storage        存储区
+     * @param mode           模式       snapshot | suspend | stop
+     * @param compress       压缩方式    0 | 1 | gzip | lzo | zstd
+     * @param remove         删除旧的
+     * @param protected_     受保护的（不会被自动备份自动删除）
+     * @param notes_template 描述文本模板
+     * @return UPID
+     * @throws IOException E
      */
     public String backUpVm(
             String nodeName,
@@ -276,10 +279,10 @@ public class ProxmoxClient {
     ) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getVzdump().vzdump(null, null,
-                        compress, null,null, null, null, null,null, null, null,
+                        compress, null, null, null, null, null, null, null, null,
                         mode,
                         notes_template, null, null, null,
-                        protected_, null, null, remove,null, null, null, null, null,
+                        protected_, null, null, remove, null, null, null, null, null,
                         storage, null,
                         String.valueOf(vmid), null
                 );
@@ -296,7 +299,7 @@ public class ProxmoxClient {
      * @param archive  备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
      * @return 恢复Job的UPID
      */
-    public String restoreVm(String nodeName, int vmid,String storage, String archive) throws IOException {
+    public String restoreVm(String nodeName, int vmid, String storage, String archive) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
                         vmid, null, null, null, null,
@@ -500,6 +503,46 @@ public class ProxmoxClient {
             vmConfig.getDiskConfigMap().put(diskDevice, diskConfig);
         }
 
+        //hostpci
+        Set<String> pciDeviceSet = new HashSet<>();
+
+        for (String key : dataJsonObject.keySet()) {
+            if (key.startsWith("hostpci")) {
+                pciDeviceSet.add(key);
+            }
+        }
+
+        for (String pciDevice : pciDeviceSet) {
+            VMConfig.PciDeviceConfig pciDeviceConfig = new VMConfig.PciDeviceConfig();
+            String configLine = dataJsonObject.getString(pciDevice);
+
+            String[] configList = configLine.split(",");
+            Integer deviceNumber = Integer.parseInt(pciDevice.replaceAll("\\D", ""));
+            String pciBus = configList[0];
+            String mdev = null;
+            Boolean pcie = false;
+            Boolean rombar = true;
+
+            for (String string : configList) {
+                String[] keyAndValue = string.split("=");
+                String key = keyAndValue[0];
+
+                switch (key) {
+                    case "mdev" -> mdev = keyAndValue[1];
+                    case "pcie" -> pcie = keyAndValue[1].equals("1");
+                    case "rombar" -> rombar = keyAndValue[1].equals("1");
+                    default -> {
+                    }
+                }
+            }
+
+            pciDeviceConfig.setPciBus(pciBus);
+            pciDeviceConfig.setMdev(mdev);
+            pciDeviceConfig.setPcie(pcie);
+            pciDeviceConfig.setRombar(rombar);
+
+            vmConfig.getPciDeviceMap().put(deviceNumber, pciDeviceConfig);
+        }
 
         return vmConfig;
     }
@@ -1346,6 +1389,105 @@ public class ProxmoxClient {
                 .getFirewall().getIpset()
                 .get(ipSetName).get(cidr)
                 .removeIp().isSuccessStatusCode();
+    }
+
+    /**
+     * 获取节点PCI设备列表
+     *
+     * @param nodeName 节点名称
+     * @return PCI设备列表
+     * @throws IOException e
+     */
+    public List<PciDevice> getPciDeviceList(String nodeName) throws IOException {
+        return objectMapper.readValue(
+                pveClient.getNodes().get(nodeName)
+                        .getHardware().getPci().pciscan()
+                        .getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<PciDevice>>() {
+                }
+        );
+    }
+
+    /**
+     * 获取节点MDEV设备列表
+     *
+     * @param nodeName 节点名称
+     * @param pciBus   宿主pci设备总线
+     * @return MDEV设备清单
+     * @throws IOException e
+     */
+    public List<PciMediatedDevice> getPciMdeviceList(String nodeName, String pciBus) throws IOException {
+        return objectMapper.readValue(
+                pveClient.getNodes().get(nodeName)
+                        .getHardware().getPci().get(pciBus)
+                        .getMdev().mdevscan()
+                        .getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<PciMediatedDevice>>() {
+                }
+        );
+    }
+
+    /**
+     * 添加PCI设备
+     *
+     * @param nodeName     节点名称
+     * @param vmid         VMID
+     * @param deviceNumber 设备序号，如0代表hostpci0，1代表hostpci1
+     * @param pciBus       设备总线地址
+     * @param mdev         虚拟设备（null为不启用mdev，直接直通整个pci设备）
+     * @param pcie         是否pcie
+     * @param rombar       是否rombar
+     * @return 是否成功
+     */
+    public boolean setVmPcieDevice(
+            String nodeName,
+            Integer vmid,
+            Integer deviceNumber,
+            String pciBus,
+            String mdev,
+            Boolean pcie,
+            Boolean rombar,
+            Boolean allFunc
+    ) throws IOException {
+        //配置信息
+        VMConfig vmConfig = this.getVmConfig(nodeName, vmid);
+        //组装pcie配置项
+        StringBuilder stringBuilder = new StringBuilder()
+                .append((allFunc && mdev == null) ? pciBus.split("\\.")[0] : pciBus);
+        if (mdev != null) {
+            stringBuilder.append(",").append("mdev=" + mdev);
+        }
+        if (pcie) {
+            stringBuilder.append(",").append("pcie=1");
+        }
+        if (!rombar) {
+            stringBuilder.append(",").append("rombar=0");
+        }
+        String configLine = stringBuilder.toString();
+        //构建hostpci map
+        Map<Integer, String> hostpciN = new HashMap<>();
+        hostpciN.put(deviceNumber, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+        //添加设备
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        vmConfig.getDigest(), null, null, null, null,
+                        hostpciN, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
+     * 删除pci设备
+     * @param nodeName      节点名
+     * @param vmid          VMID
+     * @param deviceNumber  设备序号
+     * @return  删除结果
+     * @throws IOException  e
+     */
+    public boolean deletePciDevice(String nodeName, int vmid ,int deviceNumber) throws IOException {
+        return this.deleteHardware(nodeName,vmid, "hostpci" + deviceNumber);
     }
 
 
