@@ -20,10 +20,12 @@ public class PciDevice {
     private String vendorName;
     @JsonProperty("class")
     private String _class;
-    @JsonProperty("subsystem_vendor")
-    private String subsystemVendor;
     @JsonProperty("subsystem_device")
     private String subsystemDevice;
+    @JsonProperty("subsystem_vendor")
+    private String subsystemVendorId;
+    @JsonProperty("subsystem_vendor_name")
+    private String subsystemVendorName;
     @JsonProperty("iommugroup")
     private Integer iommuGroup;
     @JsonProperty("mdev")
