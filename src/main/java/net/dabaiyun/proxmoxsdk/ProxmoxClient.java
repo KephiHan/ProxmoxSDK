@@ -320,6 +320,22 @@ public class ProxmoxClient {
     //////////////////////////////////////////
 
     /**
+     * 删除备份
+     * @param nodeName  节点名称
+     * @param storage   存储区
+     * @param volid     备份文件名
+     * @return  操作结果
+     * @throws IOException  e
+     */
+    public Boolean deleteBackup(String nodeName,String storage, String volid) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getStorage().get(storage)
+                .getContent().get(StorageContent.ContentType_BACKUP)
+                .delete(volid);
+        return pveResult.isSuccessStatusCode();
+    }
+
+    /**
      * 获取VM状态
      *
      * @param nodeName 节点

@@ -22,8 +22,8 @@ public class JunitTest {
 //            "root",
 //            "BayMax@201028"
             = new ProxmoxClient(
-            "hz-dx-1.dabaiyun.net",
-            8736,
+            "js-dx-1.dabaiyun.net",
+            8706,
             "root",
             "BayMax@201028"
 //            = new ProxmoxClient(
@@ -36,6 +36,19 @@ public class JunitTest {
     private final String nodename = "hp380-107";
 
     public JunitTest() throws IOException {
+    }
+
+    @Test
+    public void deleteBackupTest() throws IOException {
+        String volid = "vzdump-qemu-1009-2025_07_11-05_21_41.vma.zst";
+//        String encodedVolid = URLEncoder.encode(volid, StandardCharsets.UTF_8);
+        System.out.println(
+                proxmoxClient.deleteBackup(
+                        "hp380-107",
+                        "HDD-Raid5",
+                        volid
+                )
+        );
     }
 
     @Test
