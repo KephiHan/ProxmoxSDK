@@ -42,21 +42,18 @@ public class JunitTest {
     @Test
     public void createVmTest() throws IOException {
 //        proxmoxClient.setDebugLevel(2);
-        String upid = proxmoxClient.createVm(
+        String upid = proxmoxClient.createVmStandard(
                 nodename,
                 "local",
                 9002,
-                "autoTest001",
-                "l26",
-                VMConfig.DiskConfig.DeviceType_SATA,
-                50,
-                2,
+                "autoTest002",
+                VMConfig.OsType_Win10,
+                40,
+                4,
                 4096,
-                512,
-                VMConfig.NetConfig.DeviceType_E1000,
-                "vmbr0",
-                VMConfig.MachineType_q35,
-                "ttttt"
+                1024,
+                "vmbr6",
+                "test002"
         );
         System.out.println(upid);
     }

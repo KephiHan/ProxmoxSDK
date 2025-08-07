@@ -309,280 +309,286 @@ public class ProxmoxClient {
     /**
      * 创建VM
      *
-     * @param vmid The (unique) ID of the VM.
-     * @param acpi Enable/disable ACPI.
-     * @param affinity List of host cores used to execute guest
-     * processes, for example: 0,5,8-11
-     * @param agent Enable/disable communication with the QEMU Guest
-     * Agent and its properties.
-     * @param arch Virtual processor architecture. Defaults to the
-     * host. Enum: x86_64,aarch64
-     * @param archive The backup archive. Either the file system
-     * path to a .tar or .vma file (use '-' to pipe data from stdin)
-     * or a proxmox storage backup volume identifier.
-     * @param args Arbitrary arguments passed to kvm.
-     * @param audio0 Configure a audio device, useful in combination
-     * with QXL/Spice.
-     * @param autostart Automatic restart after crash (currently
-     * ignored).
-     * @param balloon Amount of target RAM for the VM in MiB. Using
-     * zero disables the ballon driver.
-     * @param bios Select BIOS implementation. Enum: seabios,ovmf
-     * @param boot Specify guest boot order. Use the 'order='
-     * sub-property as usage with no key or 'legacy=' is deprecated.
-     * @param bootdisk Enable booting from specified disk.
-     * Deprecated: Use 'boot: order=foo;bar' instead.
-     * @param bwlimit Override I/O bandwidth limit (in KiB/s).
-     * @param cdrom This is an alias for option -ide2
-     * @param cicustom cloud-init: Specify custom files to replace
-     * the automatically generated ones at start.
-     * @param cipassword cloud-init: Password to assign the user.
-     * Using this is generally not recommended. Use ssh keys
-     * instead. Also note that older cloud-init versions do not
-     * support hashed passwords.
-     * @param citype Specifies the cloud-init configuration format.
-     * The default depends on the configured operating system type
-     * (`ostype`. We use the `nocloud` format for Linux, and
-     * `configdrive2` for windows. Enum:
-     * configdrive2,nocloud,opennebula
-     * @param ciuser cloud-init: User name to change ssh keys and
-     * password for instead of the image's configured default user.
-     * @param cores The number of cores per socket.
-     * @param cpu Emulated CPU type.
-     * @param cpulimit Limit of CPU usage.
-     * @param cpuunits CPU weight for a VM, will be clamped to [1,
-     * 10000] in cgroup v2.
-     * @param description Description for the VM. Shown in the
-     * web-interface VM's summary. This is saved as comment inside
-     * the configuration file.
-     * @param efidisk0 Configure a disk for storing EFI vars. Use
-     * the special syntax STORAGE_ID:SIZE_IN_GiB to allocate a new
-     * volume. Note that SIZE_IN_GiB is ignored here and that the
-     * default EFI vars are copied to the volume instead. Use
-     * STORAGE_ID:0 and the 'import-from' parameter to import from
-     * an existing volume.
-     * @param force Allow to overwrite existing VM.
-     * @param freeze Freeze CPU at startup (use 'c' monitor command
-     * to start execution).
-     * @param hookscript Script that will be executed during various
-     * steps in the vms lifetime.
-     * @param hostpciN Map host PCI devices into guest.
-     * @param hotplug Selectively enable hotplug features. This is a
-     * comma separated list of hotplug features: 'network', 'disk',
-     * 'cpu', 'memory', 'usb' and 'cloudinit'. Use '0' to disable
-     * hotplug completely. Using '1' as value is an alias for the
-     * default `network,disk,usb`. USB hotplugging is possible for
-     * guests with machine version &amp;gt;= 7.1 and ostype l26 or
-     * windows &amp;gt; 7.
-     * @param hugepages Enable/disable hugepages memory. Enum:
-     * any,2,1024
-     * @param ideN Use volume as IDE hard disk or CD-ROM (n is 0 to
-     * 3). Use the special syntax STORAGE_ID:SIZE_IN_GiB to allocate
-     * a new volume. Use STORAGE_ID:0 and the 'import-from'
-     * parameter to import from an existing volume.
-     * @param ipconfigN cloud-init: Specify IP addresses and
-     * gateways for the corresponding interface. IP addresses use
-     * CIDR notation, gateways are optional but need an IP of the
-     * same type specified. The special string 'dhcp' can be used
-     * for IP addresses to use DHCP, in which case no explicit
-     * gateway should be provided. For IPv6 the special string
-     * 'auto' can be used to use stateless autoconfiguration. This
-     * requires cloud-init 19.4 or newer. If cloud-init is enabled
-     * and neither an IPv4 nor an IPv6 address is specified, it
-     * defaults to using dhcp on IPv4.
-     * @param ivshmem Inter-VM shared memory. Useful for direct
-     * communication between VMs, or to the host.
-     * @param keephugepages Use together with hugepages. If enabled,
-     * hugepages will not not be deleted after VM shutdown and can
-     * be used for subsequent starts.
-     * @param keyboard Keyboard layout for VNC server. This option
-     * is generally not required and is often better handled from
-     * within the guest OS. Enum:
-     * de,de-ch,da,en-gb,en-us,es,fi,fr,fr-be,fr-ca,fr-ch,hu,is,it,ja,lt,mk,nl,no,pl,pt,pt-br,sv,sl,tr
-     * @param kvm Enable/disable KVM hardware virtualization.
-     * @param live_restore Start the VM immediately from the backup
-     * and restore in background. PBS only.
-     * @param localtime Set the real time clock (RTC) to local time.
-     * This is enabled by default if the `ostype` indicates a
-     * Microsoft Windows OS.
-     * @param lock_ Lock/unlock the VM. Enum:
-     * backup,clone,create,migrate,rollback,snapshot,snapshot-delete,suspending,suspended
-     * @param machine Specifies the QEMU machine type.
-     * @param memory Amount of RAM for the VM in MiB. This is the
-     * maximum available memory when you use the balloon device.
-     * @param migrate_downtime Set maximum tolerated downtime (in
-     * seconds) for migrations.
-     * @param migrate_speed Set maximum speed (in MB/s) for
-     * migrations. Value 0 is no limit.
-     * @param name Set a name for the VM. Only used on the
-     * configuration web interface.
-     * @param nameserver cloud-init: Sets DNS server IP address for
-     * a container. Create will automatically use the setting from
-     * the host if neither searchdomain nor nameserver are set.
-     * @param netN Specify network devices.
-     * @param numa Enable/disable NUMA.
-     * @param numaN NUMA topology.
-     * @param onboot Specifies whether a VM will be started during
-     * system bootup.
-     * @param ostype Specify guest operating system. Enum:
-     * other,wxp,w2k,w2k3,w2k8,wvista,win7,win8,win10,win11,l24,l26,solaris
-     * @param parallelN Map host parallel devices (n is 0 to 2).
-     * @param pool Add the VM to the specified pool.
-     * @param protection Sets the protection flag of the VM. This
-     * will disable the remove VM and remove disk operations.
-     * @param reboot Allow reboot. If set to '0' the VM exit on
-     * reboot.
-     * @param rng0 Configure a VirtIO-based Random Number Generator.
-     * @param sataN Use volume as SATA hard disk or CD-ROM (n is 0
-     * to 5). Use the special syntax STORAGE_ID:SIZE_IN_GiB to
-     * allocate a new volume. Use STORAGE_ID:0 and the 'import-from'
-     * parameter to import from an existing volume.
-     * @param scsiN Use volume as SCSI hard disk or CD-ROM (n is 0
-     * to 30). Use the special syntax STORAGE_ID:SIZE_IN_GiB to
-     * allocate a new volume. Use STORAGE_ID:0 and the 'import-from'
-     * parameter to import from an existing volume.
-     * @param scsihw SCSI controller model Enum:
-     * lsi,lsi53c810,virtio-scsi-pci,virtio-scsi-single,megasas,pvscsi
-     * @param searchdomain cloud-init: Sets DNS search domains for a
-     * container. Create will automatically use the setting from the
-     * host if neither searchdomain nor nameserver are set.
-     * @param serialN Create a serial device inside the VM (n is 0
-     * to 3)
-     * @param shares Amount of memory shares for auto-ballooning.
-     * The larger the number is, the more memory this VM gets.
-     * Number is relative to weights of all other running VMs. Using
-     * zero disables auto-ballooning. Auto-ballooning is done by
-     * pvestatd.
-     * @param smbios1 Specify SMBIOS type 1 fields.
-     * @param smp The number of CPUs. Please use option -sockets
-     * instead.
-     * @param sockets The number of CPU sockets.
+     * @param vmid               The (unique) ID of the VM.
+     * @param acpi               Enable/disable ACPI.
+     * @param affinity           List of host cores used to execute guest
+     *                           processes, for example: 0,5,8-11
+     * @param agent              Enable/disable communication with the QEMU Guest
+     *                           Agent and its properties.
+     * @param arch               Virtual processor architecture. Defaults to the
+     *                           host. Enum: x86_64,aarch64
+     * @param archive            The backup archive. Either the file system
+     *                           path to a .tar or .vma file (use '-' to pipe data from stdin)
+     *                           or a proxmox storage backup volume identifier.
+     * @param args               Arbitrary arguments passed to kvm.
+     * @param audio0             Configure a audio device, useful in combination
+     *                           with QXL/Spice.
+     * @param autostart          Automatic restart after crash (currently
+     *                           ignored).
+     * @param balloon            Amount of target RAM for the VM in MiB. Using
+     *                           zero disables the ballon driver.
+     * @param bios               Select BIOS implementation. Enum: seabios,ovmf
+     * @param boot               Specify guest boot order. Use the 'order='
+     *                           sub-property as usage with no key or 'legacy=' is deprecated.
+     * @param bootdisk           Enable booting from specified disk.
+     *                           Deprecated: Use 'boot: order=foo;bar' instead.
+     * @param bwlimit            Override I/O bandwidth limit (in KiB/s).
+     * @param cdrom              This is an alias for option -ide2
+     * @param cicustom           cloud-init: Specify custom files to replace
+     *                           the automatically generated ones at start.
+     * @param cipassword         cloud-init: Password to assign the user.
+     *                           Using this is generally not recommended. Use ssh keys
+     *                           instead. Also note that older cloud-init versions do not
+     *                           support hashed passwords.
+     * @param citype             Specifies the cloud-init configuration format.
+     *                           The default depends on the configured operating system type
+     *                           (`ostype`. We use the `nocloud` format for Linux, and
+     *                           `configdrive2` for windows. Enum:
+     *                           configdrive2,nocloud,opennebula
+     * @param ciuser             cloud-init: User name to change ssh keys and
+     *                           password for instead of the image's configured default user.
+     * @param cores              The number of cores per socket.
+     * @param cpu                Emulated CPU type.
+     * @param cpulimit           Limit of CPU usage.
+     * @param cpuunits           CPU weight for a VM, will be clamped to [1,
+     *                           10000] in cgroup v2.
+     * @param description        Description for the VM. Shown in the
+     *                           web-interface VM's summary. This is saved as comment inside
+     *                           the configuration file.
+     * @param efidisk0           Configure a disk for storing EFI vars. Use
+     *                           the special syntax STORAGE_ID:SIZE_IN_GiB to allocate a new
+     *                           volume. Note that SIZE_IN_GiB is ignored here and that the
+     *                           default EFI vars are copied to the volume instead. Use
+     *                           STORAGE_ID:0 and the 'import-from' parameter to import from
+     *                           an existing volume.
+     * @param force              Allow to overwrite existing VM.
+     * @param freeze             Freeze CPU at startup (use 'c' monitor command
+     *                           to start execution).
+     * @param hookscript         Script that will be executed during various
+     *                           steps in the vms lifetime.
+     * @param hostpciN           Map host PCI devices into guest.
+     * @param hotplug            Selectively enable hotplug features. This is a
+     *                           comma separated list of hotplug features: 'network', 'disk',
+     *                           'cpu', 'memory', 'usb' and 'cloudinit'. Use '0' to disable
+     *                           hotplug completely. Using '1' as value is an alias for the
+     *                           default `network,disk,usb`. USB hotplugging is possible for
+     *                           guests with machine version &amp;gt;= 7.1 and ostype l26 or
+     *                           windows &amp;gt; 7.
+     * @param hugepages          Enable/disable hugepages memory. Enum:
+     *                           any,2,1024
+     * @param ideN               Use volume as IDE hard disk or CD-ROM (n is 0 to
+     *                           3). Use the special syntax STORAGE_ID:SIZE_IN_GiB to allocate
+     *                           a new volume. Use STORAGE_ID:0 and the 'import-from'
+     *                           parameter to import from an existing volume.
+     * @param ipconfigN          cloud-init: Specify IP addresses and
+     *                           gateways for the corresponding interface. IP addresses use
+     *                           CIDR notation, gateways are optional but need an IP of the
+     *                           same type specified. The special string 'dhcp' can be used
+     *                           for IP addresses to use DHCP, in which case no explicit
+     *                           gateway should be provided. For IPv6 the special string
+     *                           'auto' can be used to use stateless autoconfiguration. This
+     *                           requires cloud-init 19.4 or newer. If cloud-init is enabled
+     *                           and neither an IPv4 nor an IPv6 address is specified, it
+     *                           defaults to using dhcp on IPv4.
+     * @param ivshmem            Inter-VM shared memory. Useful for direct
+     *                           communication between VMs, or to the host.
+     * @param keephugepages      Use together with hugepages. If enabled,
+     *                           hugepages will not not be deleted after VM shutdown and can
+     *                           be used for subsequent starts.
+     * @param keyboard           Keyboard layout for VNC server. This option
+     *                           is generally not required and is often better handled from
+     *                           within the guest OS. Enum:
+     *                           de,de-ch,da,en-gb,en-us,es,fi,fr,fr-be,fr-ca,fr-ch,hu,is,it,ja,lt,mk,nl,no,pl,pt,pt-br,sv,sl,tr
+     * @param kvm                Enable/disable KVM hardware virtualization.
+     * @param live_restore       Start the VM immediately from the backup
+     *                           and restore in background. PBS only.
+     * @param localtime          Set the real time clock (RTC) to local time.
+     *                           This is enabled by default if the `ostype` indicates a
+     *                           Microsoft Windows OS.
+     * @param lock_              Lock/unlock the VM. Enum:
+     *                           backup,clone,create,migrate,rollback,snapshot,snapshot-delete,suspending,suspended
+     * @param machine            Specifies the QEMU machine type.
+     * @param memory             Amount of RAM for the VM in MiB. This is the
+     *                           maximum available memory when you use the balloon device.
+     * @param migrate_downtime   Set maximum tolerated downtime (in
+     *                           seconds) for migrations.
+     * @param migrate_speed      Set maximum speed (in MB/s) for
+     *                           migrations. Value 0 is no limit.
+     * @param name               Set a name for the VM. Only used on the
+     *                           configuration web interface.
+     * @param nameserver         cloud-init: Sets DNS server IP address for
+     *                           a container. Create will automatically use the setting from
+     *                           the host if neither searchdomain nor nameserver are set.
+     * @param netN               Specify network devices.
+     * @param numa               Enable/disable NUMA.
+     * @param numaN              NUMA topology.
+     * @param onboot             Specifies whether a VM will be started during
+     *                           system bootup.
+     * @param ostype             Specify guest operating system. Enum:
+     *                           other,wxp,w2k,w2k3,w2k8,wvista,win7,win8,win10,win11,l24,l26,solaris
+     * @param parallelN          Map host parallel devices (n is 0 to 2).
+     * @param pool               Add the VM to the specified pool.
+     * @param protection         Sets the protection flag of the VM. This
+     *                           will disable the remove VM and remove disk operations.
+     * @param reboot             Allow reboot. If set to '0' the VM exit on
+     *                           reboot.
+     * @param rng0               Configure a VirtIO-based Random Number Generator.
+     * @param sataN              Use volume as SATA hard disk or CD-ROM (n is 0
+     *                           to 5). Use the special syntax STORAGE_ID:SIZE_IN_GiB to
+     *                           allocate a new volume. Use STORAGE_ID:0 and the 'import-from'
+     *                           parameter to import from an existing volume.
+     * @param scsiN              Use volume as SCSI hard disk or CD-ROM (n is 0
+     *                           to 30). Use the special syntax STORAGE_ID:SIZE_IN_GiB to
+     *                           allocate a new volume. Use STORAGE_ID:0 and the 'import-from'
+     *                           parameter to import from an existing volume.
+     * @param scsihw             SCSI controller model Enum:
+     *                           lsi,lsi53c810,virtio-scsi-pci,virtio-scsi-single,megasas,pvscsi
+     * @param searchdomain       cloud-init: Sets DNS search domains for a
+     *                           container. Create will automatically use the setting from the
+     *                           host if neither searchdomain nor nameserver are set.
+     * @param serialN            Create a serial device inside the VM (n is 0
+     *                           to 3)
+     * @param shares             Amount of memory shares for auto-ballooning.
+     *                           The larger the number is, the more memory this VM gets.
+     *                           Number is relative to weights of all other running VMs. Using
+     *                           zero disables auto-ballooning. Auto-ballooning is done by
+     *                           pvestatd.
+     * @param smbios1            Specify SMBIOS type 1 fields.
+     * @param smp                The number of CPUs. Please use option -sockets
+     *                           instead.
+     * @param sockets            The number of CPU sockets.
      * @param spice_enhancements Configure additional enhancements
-     * for SPICE.
-     * @param sshkeys cloud-init: Setup public SSH keys (one key per
-     * line, OpenSSH format).
-     * @param start Start VM after it was created successfully.
-     * @param startdate Set the initial date of the real time clock.
-     * Valid format for date are:'now' or '2006-06-17T16:01:21' or
-     * '2006-06-17'.
-     * @param startup Startup and shutdown behavior. Order is a
-     * non-negative number defining the general startup order.
-     * Shutdown in done with reverse ordering. Additionally you can
-     * set the 'up' or 'down' delay in seconds, which specifies a
-     * delay to wait before the next VM is started or stopped.
-     * @param storage Default storage.
-     * @param tablet Enable/disable the USB tablet device.
-     * @param tags Tags of the VM. This is only meta information.
-     * @param tdf Enable/disable time drift fix.
-     * @param template Enable/disable Template.
-     * @param tpmstate0 Configure a Disk for storing TPM state. The
-     * format is fixed to 'raw'. Use the special syntax
-     * STORAGE_ID:SIZE_IN_GiB to allocate a new volume. Note that
-     * SIZE_IN_GiB is ignored here and 4 MiB will be used instead.
-     * Use STORAGE_ID:0 and the 'import-from' parameter to import
-     * from an existing volume.
-     * @param unique Assign a unique random ethernet address.
-     * @param unusedN Reference to unused volumes. This is used
-     * internally, and should not be modified manually.
-     * @param usbN Configure an USB device (n is 0 to 4, for machine
-     * version &amp;gt;= 7.1 and ostype l26 or windows &amp;gt; 7, n
-     * can be up to 14).
-     * @param vcpus Number of hotplugged vcpus.
-     * @param vga Configure the VGA hardware.
-     * @param virtioN Use volume as VIRTIO hard disk (n is 0 to 15).
-     * Use the special syntax STORAGE_ID:SIZE_IN_GiB to allocate a
-     * new volume. Use STORAGE_ID:0 and the 'import-from' parameter
-     * to import from an existing volume.
-     * @param vmgenid Set VM Generation ID. Use '1' to autogenerate
-     * on create or update, pass '0' to disable explicitly.
-     * @param vmstatestorage Default storage for VM state
-     * volumes/files.
-     * @param watchdog Create a virtual hardware watchdog device.
+     *                           for SPICE.
+     * @param sshkeys            cloud-init: Setup public SSH keys (one key per
+     *                           line, OpenSSH format).
+     * @param start              Start VM after it was created successfully.
+     * @param startdate          Set the initial date of the real time clock.
+     *                           Valid format for date are:'now' or '2006-06-17T16:01:21' or
+     *                           '2006-06-17'.
+     * @param startup            Startup and shutdown behavior. Order is a
+     *                           non-negative number defining the general startup order.
+     *                           Shutdown in done with reverse ordering. Additionally you can
+     *                           set the 'up' or 'down' delay in seconds, which specifies a
+     *                           delay to wait before the next VM is started or stopped.
+     * @param storage            Default storage.
+     * @param tablet             Enable/disable the USB tablet device.
+     * @param tags               Tags of the VM. This is only meta information.
+     * @param tdf                Enable/disable time drift fix.
+     * @param template           Enable/disable Template.
+     * @param tpmstate0          Configure a Disk for storing TPM state. The
+     *                           format is fixed to 'raw'. Use the special syntax
+     *                           STORAGE_ID:SIZE_IN_GiB to allocate a new volume. Note that
+     *                           SIZE_IN_GiB is ignored here and 4 MiB will be used instead.
+     *                           Use STORAGE_ID:0 and the 'import-from' parameter to import
+     *                           from an existing volume.
+     * @param unique             Assign a unique random ethernet address.
+     * @param unusedN            Reference to unused volumes. This is used
+     *                           internally, and should not be modified manually.
+     * @param usbN               Configure an USB device (n is 0 to 4, for machine
+     *                           version &amp;gt;= 7.1 and ostype l26 or windows &amp;gt; 7, n
+     *                           can be up to 14).
+     * @param vcpus              Number of hotplugged vcpus.
+     * @param vga                Configure the VGA hardware.
+     * @param virtioN            Use volume as VIRTIO hard disk (n is 0 to 15).
+     *                           Use the special syntax STORAGE_ID:SIZE_IN_GiB to allocate a
+     *                           new volume. Use STORAGE_ID:0 and the 'import-from' parameter
+     *                           to import from an existing volume.
+     * @param vmgenid            Set VM Generation ID. Use '1' to autogenerate
+     *                           on create or update, pass '0' to disable explicitly.
+     * @param vmstatestorage     Default storage for VM state
+     *                           volumes/files.
+     * @param watchdog           Create a virtual hardware watchdog device.
      * @return 创建Job的UPID
      */
-    public String createVm(String nodeName, int vmid, Boolean acpi, String affinity, String agent, String arch, String archive, String args, String audio0, Boolean autostart, Integer balloon, String bios, String boot, String bootdisk, Integer bwlimit, String cdrom, String cicustom, String cipassword, String citype, String ciuser, Integer cores, String cpu, Float cpulimit, Integer cpuunits, String description, String efidisk0, Boolean force, Boolean freeze, String hookscript, Map<Integer, String> hostpciN, String hotplug, String hugepages, Map<Integer, String> ideN, Map<Integer, String> ipconfigN, String ivshmem, Boolean keephugepages, String keyboard, Boolean kvm, Boolean live_restore, Boolean localtime, String lock_, String machine, Integer memory, Float migrate_downtime, Integer migrate_speed, String name, String nameserver, Map<Integer, String> netN, Boolean numa, Map<Integer, String> numaN, Boolean onboot, String ostype, Map<Integer, String> parallelN, String pool, Boolean protection, Boolean reboot, String rng0, Map<Integer, String> sataN, Map<Integer, String> scsiN, String scsihw, String searchdomain, Map<Integer, String> serialN, Integer shares, String smbios1, Integer smp, Integer sockets, String spice_enhancements, String sshkeys, Boolean start, String startdate, String startup, String storage, Boolean tablet, String tags, Boolean tdf, Boolean template, String tpmstate0, Boolean unique, Map<Integer, String> unusedN, Map<Integer, String> usbN, Integer vcpus, String vga, Map<Integer, String> virtioN, String vmgenid, String vmstatestorage, String watchdog) throws IOException {
+    public String createVmStandard(String nodeName, int vmid, Boolean acpi, String affinity, String agent, String arch, String archive, String args, String audio0, Boolean autostart, Integer balloon, String bios, String boot, String bootdisk, Integer bwlimit, String cdrom, String cicustom, String cipassword, String citype, String ciuser, Integer cores, String cpu, Float cpulimit, Integer cpuunits, String description, String efidisk0, Boolean force, Boolean freeze, String hookscript, Map<Integer, String> hostpciN, String hotplug, String hugepages, Map<Integer, String> ideN, Map<Integer, String> ipconfigN, String ivshmem, Boolean keephugepages, String keyboard, Boolean kvm, Boolean live_restore, Boolean localtime, String lock_, String machine, Integer memory, Float migrate_downtime, Integer migrate_speed, String name, String nameserver, Map<Integer, String> netN, Boolean numa, Map<Integer, String> numaN, Boolean onboot, String ostype, Map<Integer, String> parallelN, String pool, Boolean protection, Boolean reboot, String rng0, Map<Integer, String> sataN, Map<Integer, String> scsiN, String scsihw, String searchdomain, Map<Integer, String> serialN, Integer shares, String smbios1, Integer smp, Integer sockets, String spice_enhancements, String sshkeys, Boolean start, String startdate, String startup, String storage, Boolean tablet, String tags, Boolean tdf, Boolean template, String tpmstate0, Boolean unique, Map<Integer, String> unusedN, Map<Integer, String> usbN, Integer vcpus, String vga, Map<Integer, String> virtioN, String vmgenid, String vmstatestorage, String watchdog) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(vmid, acpi, affinity, agent, arch, archive, args, audio0, autostart, balloon, bios, boot, bootdisk, bwlimit, cdrom, cicustom, cipassword, citype, ciuser, cores, cpu, cpulimit, cpuunits, description, efidisk0, force, freeze, hookscript, hostpciN, hotplug, hugepages, ideN, ipconfigN, ivshmem, keephugepages, keyboard, kvm, live_restore, localtime, lock_, machine, memory, migrate_downtime, migrate_speed, name, nameserver, netN, numa, numaN, onboot, ostype, parallelN, pool, protection, reboot, rng0, sataN, scsiN, scsihw, searchdomain, serialN, shares, smbios1, smp, sockets, spice_enhancements, sshkeys, start, startdate, startup, storage, tablet, tags, tdf, template, tpmstate0, unique, unusedN, usbN, vcpus, vga, virtioN, vmgenid, vmstatestorage, watchdog);
         return pveResult.getResponse().getString("data");
     }
 
     /**
-     * 创建简单虚拟机
-     * @param nodeName              节点名称
-     * @param storage               存储区
-     * @param vmid                  VMID
-     * @param vmName                VM名称
-     * @param osType                OS类型
-     * @param diskType              磁盘类型
-     * @param diskSizeGb            磁盘大小
-     * @param cpuCores              CPU核心数
-     * @param maxMemoryMb           最大内存
-     * @param minMemoryMb           最小内存
-     * @param netType               网卡类型
-     * @param netBridge             网桥
-     * @param machineType           设备类型
-     * @param description           描述
-     * @return  UPID
+     * 创建标准虚拟机
+     *
+     * @param nodeName    节点名称
+     * @param storage     存储区
+     * @param vmid        VMID
+     * @param vmName      VM名称
+     * @param osType      OS类型
+     *                    //     * @param diskType              磁盘类型
+     * @param diskSizeGb  磁盘大小
+     * @param cpuCores    CPU核心数
+     * @param maxMemoryMb 最大内存
+     * @param minMemoryMb 最小内存
+     *                    //     * @param netType               网卡类型
+     * @param netBridge   网桥
+//     * @param machineType 设备类型
+     * @param description 描述
+     * @return UPID
      * @throws IOException e
      */
-    public String createVm(
+    public String createVmStandard(
             String nodeName,
             String storage,
             int vmid,
             String vmName,
             String osType,
-            String diskType,
+//            String diskType,
             int diskSizeGb,
             int cpuCores,
             int maxMemoryMb,
             int minMemoryMb,
-            String netType,
+//            String netType,
             String netBridge,
-            String machineType,
+//            String machineType,
             String description
     ) throws IOException {
         Integer memory = Math.max(maxMemoryMb, minMemoryMb);
         Integer balloon = null;
-        if (maxMemoryMb != minMemoryMb){
+        if (maxMemoryMb != minMemoryMb) {
             balloon = Math.min(maxMemoryMb, minMemoryMb);
         }
         //Disk
-        Map<Integer, String> ideN = null;
-        Map<Integer, String> sataN = null;
-        Map<Integer, String> scsiN = null;
+//        Map<Integer, String> ideN = null;
+//        Map<Integer, String> sataN = null;
+//        Map<Integer, String> scsiN = null;
         Map<Integer, String> virtioN = null;
-        switch (diskType) {
-            case DeviceType_IDE -> {
-                ideN = new HashMap<>();
-                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
-                ideN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
-            }
-            case DeviceType_SATA -> {
-                sataN = new HashMap<>();
-                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
-                sataN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
-            }
-            case DeviceType_SCSI -> {
-                scsiN = new HashMap<>();
-                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
-                        + ",iothread=on";
-                scsiN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
-            }
-            case DeviceType_VirtIO -> {
-                virtioN = new HashMap<>();
-                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
-                        + ",iothread=on";
-                virtioN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
-            }
-            default -> {
-                //未知磁盘设备类型
-            }
-        }
+        virtioN = new HashMap<>();
+        String DiskonfigLine = storage + ":" + diskSizeGb + ",format=qcow2"
+                + ",iothread=on";
+        virtioN.put(0, URLEncoder.encode(DiskonfigLine, StandardCharsets.UTF_8));
+//        switch (diskType) {
+//            case DeviceType_IDE -> {
+//                ideN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
+//                ideN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_SATA -> {
+//                sataN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
+//                sataN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_SCSI -> {
+//                scsiN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
+//                        + ",iothread=on";
+//                scsiN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_VirtIO -> {
+//                virtioN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
+//                        + ",iothread=on";
+//                virtioN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            default -> {
+//                //未知磁盘设备类型
+//                System.out.println(this.getClass().getSimpleName() + ": Unknown disk type: " + diskType);
+//            }
+//        }
 
         //Net
         Map<Integer, String> netN = new HashMap<>();
-        String configLine = netType + ",bridge=" + netBridge;
-        netN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+        String netConfigLine = VMConfig.NetConfig.DeviceType_VirtIO + ",bridge=" + netBridge;
+        netN.put(0, URLEncoder.encode(netConfigLine, StandardCharsets.UTF_8));
 
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
@@ -591,20 +597,129 @@ public class ProxmoxClient {
                         cpuCores,
                         "host", null, null,
                         description, null, null, null, null, null, null, null,
-                        ideN, null, null, null, null, null, null, null, null,
-                        machineType,
+                        null, null, null, null, null, null, null, null, null,
+                        VMConfig.MachineType_q35,
+                        memory, null, null,
+                        vmName, null,
+                        netN,
+                        false, null, null,
+                        osType, null, null, null, null, null,
+                        null,
+                        null,
+                        VMConfig.SCSI_HW_VirtIO_SCSI_Single,
+                        null, null, null, null, null,
+                        1, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null,
+                        virtioN, null,
+                        null, null
+                );
+        return pveResult.getResponse().getString("data");
+    }
+
+    /**
+     * 创建标准虚拟机
+     *
+     * @param nodeName    节点名称
+     * @param storage     存储区
+     * @param vmid        VMID
+     * @param vmName      VM名称
+     * @param osType      OS类型
+     *                    //     * @param diskType              磁盘类型
+     * @param diskSizeGb  磁盘大小
+     * @param cpuCores    CPU核心数
+     * @param maxMemoryMb 最大内存
+     * @param minMemoryMb 最小内存
+     *                    //     * @param netType               网卡类型
+     * @param netBridge   网桥
+//     * @param machineType 设备类型
+     * @param description 描述
+     * @return UPID
+     * @throws IOException e
+     */
+    public String createVmCompatible(
+            String nodeName,
+            String storage,
+            int vmid,
+            String vmName,
+            String osType,
+//            String diskType,
+            int diskSizeGb,
+            int cpuCores,
+            int maxMemoryMb,
+            int minMemoryMb,
+//            String netType,
+            String netBridge,
+//            String machineType,
+            String description
+    ) throws IOException {
+        Integer memory = Math.max(maxMemoryMb, minMemoryMb);
+        Integer balloon = null;
+        if (maxMemoryMb != minMemoryMb) {
+            balloon = Math.min(maxMemoryMb, minMemoryMb);
+        }
+        //Disk
+//        Map<Integer, String> ideN = null;
+        Map<Integer, String> sataN = null;
+        sataN = new HashMap<>();
+        String diskConfigLine = storage + ":" + diskSizeGb + ",format=qcow2";
+        sataN.put(0, URLEncoder.encode(diskConfigLine, StandardCharsets.UTF_8));
+//        Map<Integer, String> scsiN = null;
+//        Map<Integer, String> virtioN = null;
+//        switch (diskType) {
+//            case DeviceType_IDE -> {
+//                ideN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
+//                ideN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_SATA -> {
+//                sataN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2";
+//                sataN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_SCSI -> {
+//                scsiN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
+//                        + ",iothread=on";
+//                scsiN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            case DeviceType_VirtIO -> {
+//                virtioN = new HashMap<>();
+//                String configLine = storage + ":" + diskSizeGb + ",format=qcow2"
+//                        + ",iothread=on";
+//                virtioN.put(0, URLEncoder.encode(configLine, StandardCharsets.UTF_8));
+//            }
+//            default -> {
+//                //未知磁盘设备类型
+//                System.out.println(this.getClass().getSimpleName() + ": Unknown disk type: " + diskType);
+//            }
+//        }
+
+        //Net
+        Map<Integer, String> netN = new HashMap<>();
+        String netConfigLine = VMConfig.NetConfig.DeviceType_E1000 + ",bridge=" + netBridge;
+        netN.put(0, URLEncoder.encode(netConfigLine, StandardCharsets.UTF_8));
+
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getQemu().createVm(
+                        vmid, null, null, null, null, null, null, null, null,
+                        balloon, null, null, null, null, null, null, null, null, null,
+                        cpuCores,
+                        "host", null, null,
+                        description, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null,
+                        VMConfig.MachineType_i440fx,
                         memory, null, null,
                         vmName, null,
                         netN,
                         false, null, null,
                         osType, null, null, null, null, null,
                         sataN,
-                        scsiN,
-                        "virtio-scsi-single",
+                        null,
+                        VMConfig.SCSI_HW_LSI53C895A,
                         null, null, null, null, null,
                         1, null, null, null, null, null,
                         null, null, null, null, null, null, null, null, null, null, null,
-                        virtioN, null,
+                        null, null,
                         null, null
                 );
         return pveResult.getResponse().getString("data");

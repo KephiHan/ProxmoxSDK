@@ -8,8 +8,26 @@ import java.util.*;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VMConfig {
+
     public static final String MachineType_i440fx = "i440fx";
     public static final String MachineType_q35 = "q35";
+
+    public static final String SCSI_HW_LSI53C895A           = "lsi";
+    public static final String SCSI_HW_LSI53C810            = "lsi53c810";
+    public static final String SCSI_HW_MegaSAS8708EM2       = "megasas";
+    public static final String SCSI_HW_VirtIO_SCSI          = "virtio-scsi-pci";
+    public static final String SCSI_HW_VirtIO_SCSI_Single   = "virtio-scsi-single";
+    public static final String SCSI_HW_VMware_PVSCSI        = "pvscsi";
+
+    public static final String OsType_Linux26               = "l26";
+    public static final String OsType_Linux24               = "l24";
+    public static final String OsType_WinXP                 = "wxp";
+    public static final String OsType_Win2000               = "w2k";
+    public static final String OsType_Win2008               = "w2k8";
+    public static final String OsType_Win7                  = "win7";
+    public static final String OsType_Win8                  = "win8";
+    public static final String OsType_Win10                 = "win10";
+    public static final String OsType_Win11                 = "win11";
 
     private String name;
 
