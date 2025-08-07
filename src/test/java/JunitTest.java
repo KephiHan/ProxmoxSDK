@@ -22,8 +22,8 @@ public class JunitTest {
 //            "root",
 //            "BayMax@201028"
             = new ProxmoxClient(
-            "js-dx-1.dabaiyun.net",
-            8706,
+            "hz-dx-1.dabaiyun.net",
+            8736,
             "root",
             "BayMax@201028"
 //            = new ProxmoxClient(
@@ -33,10 +33,34 @@ public class JunitTest {
 //            "BayMax@201028"
     );
 
-    private final String nodename = "hp380-107";
+//    private final String nodename = "hp380-107";
+    private final String nodename = "r730-216";
 
     public JunitTest() throws IOException {
     }
+
+    @Test
+    public void createVmTest() throws IOException {
+//        proxmoxClient.setDebugLevel(2);
+        String upid = proxmoxClient.createVm(
+                nodename,
+                "local",
+                9002,
+                "autoTest001",
+                "l26",
+                VMConfig.DiskConfig.DeviceType_SATA,
+                50,
+                2,
+                4096,
+                512,
+                VMConfig.NetConfig.DeviceType_E1000,
+                "vmbr0",
+                VMConfig.MachineType_q35,
+                "ttttt"
+        );
+        System.out.println(upid);
+    }
+
 
     @Test
     public void deleteBackupTest() throws IOException {
@@ -59,7 +83,7 @@ public class JunitTest {
                         1005,
                         1,
                         "0000:03:00.0",
-                        "nvidia-256",
+                        null,
                         true,
                         true,
                         true

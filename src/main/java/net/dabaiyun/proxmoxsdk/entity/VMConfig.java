@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.util.*;
+
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VMConfig {
+    public static final String MachineType_i440fx = "i440fx";
+    public static final String MachineType_q35 = "q35";
 
     private String name;
 
@@ -36,17 +39,17 @@ public class VMConfig {
     @Data
     public static class NetConfig {
 
-        public static final String DeviceType_E1000         = "e1000";
-        public static final String DeviceType_VirtIO        = "virtio";
-        public static final String DeviceType_RTL8139       = "rtl8139";
-        public static final String DeviceType_VMXNET3       = "vmxnet3";
+        public static final String DeviceType_E1000 = "e1000";
+        public static final String DeviceType_VirtIO = "virtio";
+        public static final String DeviceType_RTL8139 = "rtl8139";
+        public static final String DeviceType_VMXNET3 = "vmxnet3";
 
-        public static final String IpConfigTypeV4_DHCP      = "dhcp";
-        public static final String IpConfigTypeV4_STATIC    = "static";
+        public static final String IpConfigTypeV4_DHCP = "dhcp";
+        public static final String IpConfigTypeV4_STATIC = "static";
 
-        public static final String IpConfigTypeV6_DHCP      = "dhcp";
-        public static final String IpConfigTypeV6_STATIC    = "static";
-        public static final String IpConfigTypeV6_SLAAC     = "auto";
+        public static final String IpConfigTypeV6_DHCP = "dhcp";
+        public static final String IpConfigTypeV6_STATIC = "static";
+        public static final String IpConfigTypeV6_SLAAC = "auto";
 
         private String deviceType;
         private String mac;
@@ -83,17 +86,22 @@ public class VMConfig {
     @Data
     public static class DiskConfig {
 
-        public static final String DeviceType_IDE       = "ide";
-        public static final String DeviceType_SATA      = "sata";
-        public static final String DeviceType_SCSI      = "scsi";
-        public static final String DeviceType_VirtIO    = "virtio";
-        public static final String DeviceType_Unused    = "unused";
+        public static final String DeviceType_IDE = "ide";
+        public static final String DeviceType_SATA = "sata";
+        public static final String DeviceType_SCSI = "scsi";
+        public static final String DeviceType_VirtIO = "virtio";
+        public static final String DeviceType_Unused = "unused";
+
+        public static final String Format_RAW = "raw";
+        public static final String Format_QCOW2 = "qcow2";
+        public static final String Format_VMDK = "vmdk";
 
         private String deviceType;
         private Integer deviceNumber;
         private String storage;
         private String folder;
         private String filename;
+        private String format;
         private boolean iothread = false;
         private boolean backup = true;
         private boolean discard = false;
@@ -103,7 +111,7 @@ public class VMConfig {
         private long sizeBytes = 0L;
         private boolean isCDROM = false;
 
-        public String getDiskSizeString(){
+        public String getDiskSizeString() {
             return diskSizeToHumanly(sizeBytes);
         }
 
@@ -132,7 +140,7 @@ public class VMConfig {
             return configLineBuilder.toString();
         }
 
-        private String diskSizeToHumanly(long sizeBytes){
+        private String diskSizeToHumanly(long sizeBytes) {
             String sizeString = "";
             if (sizeBytes % Math.pow(1024, 4) == 0) {
                 sizeString = (int) (sizeBytes * Math.pow(1024, -4)) + "T";
@@ -156,7 +164,21 @@ public class VMConfig {
         private String mdev;
         private Boolean pcie;
         private Boolean rombar;
-    }
 
+        public String toConfigLine() {
+            StringBuilder configLineBuilder = new StringBuilder();
+            configLineBuilder.append(pciBus);
+            if (mdev != null) {
+                configLineBuilder.append(",").append("mdev=").append(mdev);
+            }
+            if (pcie != null && pcie) {
+                configLineBuilder.append(",").append("pcie=").append("1");
+            }
+            if (rombar != null && !rombar) {
+                configLineBuilder.append(",").append("rombar=").append("0");
+            }
+            return configLineBuilder.toString();
+        }
+    }
 
 }

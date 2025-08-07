@@ -7,9 +7,9 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VMInfo {
 
-    private int cpus;
-    private int vmid;
     private long pid;
+    private int vmid;
+    private int cpus;
     private String status;
     private long uptime;
     private String name;
