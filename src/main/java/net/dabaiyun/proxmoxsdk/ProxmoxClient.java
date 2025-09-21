@@ -283,9 +283,8 @@ public class ProxmoxClient {
         return pveResult.getResponse().getString("data");
     }
 
-
     /**
-     * 备份恢复VM
+     * 备份恢复VM (精简参数)
      *
      * @param nodeName 节点名称
      * @param vmid     VMID
@@ -302,6 +301,55 @@ public class ProxmoxClient {
                         null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         storage, null, null, null, null, null,
                         null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.getResponse().getString("data");
+    }
+
+    /**
+     * 备份恢复VM
+     *
+     * @param nodeName      节点名称
+     * @param vmid          VMID
+     * @param storage       存储区
+     * @param archive       备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
+     * @param name          名称
+     * @param sockets       插槽数
+     * @param cores         核心数
+     * @param ramMbs        内存大小 单位MB
+     * @param rateLimitKbs  限制拷贝速率 单位KB
+     * @param unique        生成唯一信息 如MAC
+     * @param start         还原后自动启动
+     * @param force         强制覆盖已有VMID
+     * @return              恢复任务的UPID
+     * @throws IOException  e
+     */
+    public String restoreVm(
+            String nodeName,
+            int vmid,
+            String storage,
+            String archive,
+            String name,
+            Integer sockets,
+            Integer cores,
+            Integer ramMbs,
+            Integer rateLimitKbs,
+            Boolean unique,
+            Boolean start,
+            Boolean force
+    ) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getQemu().createVm(
+                        vmid, null, null, null, null,
+                        archive, null, null, null, null, null, null, null,
+                        rateLimitKbs, null, null, null, null, null,
+                        cores, null, null, null, null, null,
+                        force, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        ramMbs, null, null,
+                        name, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        sockets, null, null,
+                        start, null, null,
+                        storage, null, null, null, null, null,
+                        unique, null, null, null, null, null, null, null, null
                 );
         return pveResult.getResponse().getString("data");
     }
@@ -1451,6 +1499,7 @@ public class ProxmoxClient {
             int vmid,
             int netN,
             String netDeviceType,
+            String mac,
             String bridgeName
     ) throws IOException {
         return this.setVmNetCard(
@@ -1458,7 +1507,7 @@ public class ProxmoxClient {
                 vmid,
                 netN,
                 netDeviceType,
-                null,
+                mac,
                 bridgeName,
                 false,
                 false,
@@ -1520,10 +1569,8 @@ public class ProxmoxClient {
         PveResult pveResult = pveClient
                 .getNodes().get(nodeName)
                 .getQemu().get(vmid)
-                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        netNMap, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        netNMap, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
                 );
         return pveResult.isSuccessStatusCode();
     }

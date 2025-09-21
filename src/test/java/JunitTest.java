@@ -40,6 +40,54 @@ public class JunitTest {
     }
 
     @Test
+    public void setVmNetCardTest() throws IOException {
+        VMConfig vmConfig = proxmoxClient.getVmConfig(
+                nodename, 9263
+        );
+        String macNet0 = vmConfig.getNetDeviceMap().get(0).getMac();
+        String bridgeNet0 = vmConfig.getNetDeviceMap().get(0).getBridge();
+        System.out.println("macNet0: " + macNet0);
+        System.out.println("bridgeNet0: " + bridgeNet0);
+        boolean rst = proxmoxClient.setVmNetCard(
+                nodename, 9263, 0,
+                VMConfig.NetConfig.DeviceType_E1000,
+                macNet0,
+                "vmbr6"
+        );
+        System.out.println("rst: " + rst);
+    }
+
+    @Test
+    public void restoreVmFromAchievementTest() throws IOException {
+
+        String upid = proxmoxClient.restoreVm(
+                nodename,
+                9675,
+                "HDD-Raid5",
+                "NFS-R730-HDD:backup/vzdump-qemu-104-2025_08_21-21_43_52.vma.zst",
+                "DaBai-19675",
+                1,
+                8,
+                16384,
+                102400,
+                true,
+                true,
+                true
+        );
+        System.out.println(upid);
+
+        proxmoxClient.waitTaskFinish(upid, 5*1000, 300*1000);
+
+        System.out.println(
+                new ObjectMapper().writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(
+                                proxmoxClient.getNodeTaskInfo(nodename, upid)
+                        )
+        );
+
+    }
+
+    @Test
     public void createVmTest() throws IOException {
 //        proxmoxClient.setDebugLevel(2);
         String upid = proxmoxClient.createVmStandard(
@@ -570,6 +618,7 @@ public class JunitTest {
                         501,
                         4,
                         "virtio",
+                        "",
                         "vmbr0"
                 )
         );
