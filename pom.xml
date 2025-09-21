@@ -6,7 +6,7 @@
 
     <groupId>net.dabaiyun</groupId>
     <artifactId>ProxmoxSDK</artifactId>
-    <version>7.4.0-dby-3.3.6</version>
+    <version>7.4.0-dby-3.3.7</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

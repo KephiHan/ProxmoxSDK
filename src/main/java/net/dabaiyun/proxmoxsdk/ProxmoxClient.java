@@ -292,7 +292,12 @@ public class ProxmoxClient {
      * @param archive  备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
      * @return 恢复Job的UPID
      */
-    public String restoreVm(String nodeName, int vmid, String storage, String archive) throws IOException {
+    public String restoreVm(
+            String nodeName,
+            int vmid,
+            String storage,
+            String archive
+    ) throws IOException {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
                         vmid, null, null, null, null,
@@ -315,7 +320,13 @@ public class ProxmoxClient {
      * @param name          名称
      * @param sockets       插槽数
      * @param cores         核心数
-     * @param ramMbs        内存大小 单位MB
+     * @param memoryMinMbs  Balloon内存
+     * @param memoryMaxMbs  内存大小 单位MB
+     * @param osType        OS类型 enum: l26,l24,wxp.w2k.w2k8,win7,win8,win10,win11... etc.
+     * @param machineType   机器硬件类型 enumL i440fx,q35... etc.
+     * @param osAccount     OS账户
+     * @param osPassword    OS账户密码
+     * @param description   描述
      * @param rateLimitKbs  限制拷贝速率 单位KB
      * @param unique        生成唯一信息 如MAC
      * @param start         还原后自动启动
@@ -331,7 +342,13 @@ public class ProxmoxClient {
             String name,
             Integer sockets,
             Integer cores,
-            Integer ramMbs,
+            Integer memoryMinMbs,
+            Integer memoryMaxMbs,
+            String osType,
+            String machineType,
+            String osAccount,
+            String osPassword,
+            String description,
             Integer rateLimitKbs,
             Boolean unique,
             Boolean start,
@@ -340,12 +357,18 @@ public class ProxmoxClient {
         PveResult pveResult = pveClient.getNodes().get(nodeName)
                 .getQemu().createVm(
                         vmid, null, null, null, null,
-                        archive, null, null, null, null, null, null, null,
-                        rateLimitKbs, null, null, null, null, null,
-                        cores, null, null, null, null, null,
-                        force, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-                        ramMbs, null, null,
-                        name, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        archive, null, null, null,
+                        memoryMinMbs, null, null, null,
+                        rateLimitKbs, null, null,
+                        osPassword, null,
+                        osAccount,
+                        cores, null, null, null,
+                        description, null,
+                        force, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        machineType,
+                        memoryMaxMbs, null, null,
+                        name, null, null, null, null, null,
+                        osType, null, null, null, null, null, null, null, null, null, null, null, null, null,
                         sockets, null, null,
                         start, null, null,
                         storage, null, null, null, null, null,

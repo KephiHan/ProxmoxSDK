@@ -10,7 +10,13 @@ import java.util.*;
 public class VMConfig {
 
     public static final String MachineType_i440fx = "i440fx";
+    public static final String MachineType_i440fx_7_2 = "pc-i440fx-7.2";
+    public static final String MachineType_i440fx_6_2 = "pc-i440fx-6.2";
+    public static final String MachineType_i440fx_5_2 = "pc-i440fx-5.2";
     public static final String MachineType_q35 = "q35";
+    public static final String MachineType_q35_7_2 = "pc-q35-7.2";
+    public static final String MachineType_q35_6_2 = "pc-q35-6.2";
+    public static final String MachineType_q35_5_2 = "pc-q35-5.2";
 
     public static final String SCSI_HW_LSI53C895A           = "lsi";
     public static final String SCSI_HW_LSI53C810            = "lsi53c810";

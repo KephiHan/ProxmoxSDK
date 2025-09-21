@@ -58,21 +58,27 @@ public class JunitTest {
     }
 
     @Test
-    public void restoreVmFromAchievementTest() throws IOException {
-
+    public void restoreVmFromArchiveTest() throws IOException {
+        int vmid = 9477;
         String upid = proxmoxClient.restoreVm(
                 nodename,
-                9675,
+                vmid,
                 "HDD-Raid5",
-                "NFS-R730-HDD:backup/vzdump-qemu-104-2025_08_21-21_43_52.vma.zst",
-                "DaBai-19675",
+                "NFS-R730-HDD:backup/vzdump-qemu-109-2025_08_21-21_47_48.vma.zst",
+                "DaBai-1" + vmid,
                 1,
-                8,
-                16384,
-                102400,
+                4,
+                1024,
+                8192,
+                VMConfig.OsType_Linux26,
+                VMConfig.MachineType_q35_6_2,
+                "root",
+                "BayMax@201028",
+                "TestTestTest",
+                null,
                 true,
-                true,
-                true
+                false,
+                false
         );
         System.out.println(upid);
 
