@@ -40,6 +40,17 @@ public class JunitTest {
     }
 
     @Test
+    public void setVmMachineTypeTest() throws IOException {
+        int vmid = 9666;
+        boolean rst = proxmoxClient.setVmMachineType(
+                nodename,
+                vmid,
+                VMConfig.MachineType_q35_6_2
+        );
+        System.out.println("rst = " + rst);
+    }
+
+    @Test
     public void setVmNetCardTest() throws IOException {
         VMConfig vmConfig = proxmoxClient.getVmConfig(
                 nodename, 9263

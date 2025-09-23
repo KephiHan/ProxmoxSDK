@@ -313,26 +313,26 @@ public class ProxmoxClient {
     /**
      * 备份恢复VM
      *
-     * @param nodeName      节点名称
-     * @param vmid          VMID
-     * @param storage       存储区
-     * @param archive       备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
-     * @param name          名称
-     * @param sockets       插槽数
-     * @param cores         核心数
-     * @param memoryMinMbs  Balloon内存
-     * @param memoryMaxMbs  内存大小 单位MB
-     * @param osType        OS类型 enum: l26,l24,wxp.w2k.w2k8,win7,win8,win10,win11... etc.
-     * @param machineType   机器硬件类型 enumL i440fx,q35... etc.
-     * @param osAccount     OS账户
-     * @param osPassword    OS账户密码
-     * @param description   描述
-     * @param rateLimitKbs  限制拷贝速率 单位KB
-     * @param unique        生成唯一信息 如MAC
-     * @param start         还原后自动启动
-     * @param force         强制覆盖已有VMID
-     * @return              恢复任务的UPID
-     * @throws IOException  e
+     * @param nodeName     节点名称
+     * @param vmid         VMID
+     * @param storage      存储区
+     * @param archive      备份文件的volid eg. HDD-Raid6:backup/vzdump-qemu-1007-2024_08_14-05_20_59.vma.zst
+     * @param name         名称
+     * @param sockets      插槽数
+     * @param cores        核心数
+     * @param memoryMinMbs Balloon内存
+     * @param memoryMaxMbs 内存大小 单位MB
+     * @param osType       OS类型 enum: l26,l24,wxp.w2k.w2k8,win7,win8,win10,win11... etc.
+     * @param machineType  机器硬件类型 enumL i440fx,q35... etc.
+     * @param osAccount    OS账户
+     * @param osPassword   OS账户密码
+     * @param description  描述
+     * @param rateLimitKbs 限制拷贝速率 单位KB
+     * @param unique       生成唯一信息 如MAC
+     * @param start        还原后自动启动
+     * @param force        强制覆盖已有VMID
+     * @return 恢复任务的UPID
+     * @throws IOException e
      */
     public String restoreVm(
             String nodeName,
@@ -592,7 +592,7 @@ public class ProxmoxClient {
      * @param minMemoryMb 最小内存
      *                    //     * @param netType               网卡类型
      * @param netBridge   网桥
-//     * @param machineType 设备类型
+     *                    //     * @param machineType 设备类型
      * @param description 描述
      * @return UPID
      * @throws IOException e
@@ -702,7 +702,7 @@ public class ProxmoxClient {
      * @param minMemoryMb 最小内存
      *                    //     * @param netType               网卡类型
      * @param netBridge   网桥
-//     * @param machineType 设备类型
+     *                    //     * @param machineType 设备类型
      * @param description 描述
      * @return UPID
      * @throws IOException e
@@ -1424,6 +1424,26 @@ public class ProxmoxClient {
             }
             default -> throw new IllegalStateException("Unexpected device type: " + deviceType);
         }
+    }
+
+    /**
+     * 设置机型
+     * @param nodeName 节点
+     * @param vmid     VMID
+     * @param machineType 机型
+     * @return 成功？
+     * @throws IOException ex
+     */
+    public boolean setVmMachineType(String nodeName, int vmid, String machineType) throws IOException {
+        PveResult pveResult = pveClient
+                .getNodes().get(nodeName)
+                .getQemu().get(vmid)
+                .getConfig().updateVm(null, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                        machineType, null, null, null, null, null, null, null, null, null,
+                        null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null
+                );
+        return pveResult.isSuccessStatusCode();
     }
 
     /**
