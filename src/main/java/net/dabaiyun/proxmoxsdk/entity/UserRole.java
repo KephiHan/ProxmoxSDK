@@ -20,7 +20,7 @@ public class UserRole {
     public enum Group {
         Allocate("Group.Allocate");
 
-        String val;
+        final String val;
 
         Group(String val) {
             this.val = val;
@@ -35,7 +35,7 @@ public class UserRole {
     public enum User {
         Modify("User.Modify");
 
-        String val;
+        final String val;
 
         User(String val) {
             this.val = val;
@@ -53,7 +53,7 @@ public class UserRole {
         AllocateSpace("Datastore.AllocateSpace"),
         Allocate("Datastore.Allocate");
 
-        String val;
+        final String val;
 
         Datastore(String val) {
             this.val = val;
@@ -75,7 +75,7 @@ public class UserRole {
         Allocate("VM.Allocate"),
         Clone("VM.Clone");
 
-        String val;
+        final String val;
 
         VM(String val) {
             this.val = val;
@@ -90,7 +90,7 @@ public class UserRole {
             Snapshot("VM.Snapshot"),
             Rollback("VM.Snapshot.Rollback");
 
-            String val;
+            final String val;
 
             Snapshot(String val) {
                 this.val = val;
@@ -103,7 +103,7 @@ public class UserRole {
         }
 
         public enum Config {
-            Cloudinit("VM.Config.Cloudinit"),
+            CloudInit("VM.Config.Cloudinit"),
             Options("VM.Config.Options"),
             Memory("VM.Config.Memory"),
             HWType("VM.Config.HWType"),
@@ -112,7 +112,7 @@ public class UserRole {
             Disk("VM.Config.Disk"),
             CDROM("VM.Config.CDROM");
 
-            String val;
+            final String val;
 
             Config(String val) {
                 this.val = val;
@@ -128,7 +128,7 @@ public class UserRole {
     public enum Permissions {
         Modify("Permissions.Modify");
 
-        String val;
+        final String val;
 
         Permissions(String val) {
             this.val = val;
@@ -144,7 +144,7 @@ public class UserRole {
         Audit("Pool.Audit"),
         Allocate("Pool.Allocate");
 
-        String val;
+        final String val;
 
         Pool(String val) {
             this.val = val;
@@ -161,7 +161,7 @@ public class UserRole {
         Use("SDN.Use"),
         Allocate("SDN.Allocate");
 
-        String val;
+        final String val;
 
         SDN(String val) {
             this.val = val;
@@ -181,7 +181,7 @@ public class UserRole {
         PowerMgmt("Sys.PowerMgmt"),
         Modify("Sys.Modify");
 
-        String val;
+        final String val;
 
         Sys(String val) {
             this.val = val;
@@ -197,7 +197,7 @@ public class UserRole {
         AllocateUser("Realm.AllocateUser"),
         Allocate("Realm.Allocate");
 
-        String val;
+        final String val;
 
         Realm(String val) {
             this.val = val;

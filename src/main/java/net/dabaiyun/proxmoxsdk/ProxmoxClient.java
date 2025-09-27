@@ -323,7 +323,7 @@ public class ProxmoxClient {
      * @param memoryMinMbs Balloon内存
      * @param memoryMaxMbs 内存大小 单位MB
      * @param osType       OS类型 enum: l26,l24,wxp.w2k.w2k8,win7,win8,win10,win11... etc.
-     * @param machineType  机器硬件类型 enumL i440fx,q35... etc.
+     * @param machineType  机器硬件类型 enum: i440fx,q35... etc.
      * @param osAccount    OS账户
      * @param osPassword   OS账户密码
      * @param description  描述
@@ -803,6 +803,31 @@ public class ProxmoxClient {
     //                                      //
     //////////////////////////////////////////
 
+    /**
+     * 获取网络接口列表
+     * @param nodeName 节点名称
+     * @return  网络接口列表
+     * @throws IOException e
+     */
+    public List<Network> getNetworkList(String nodeName) throws IOException {
+        return this.getNetworkList(nodeName, null);
+    }
+
+    /**
+     * 获取网络接口列表
+     * @param nodeName 节点名称
+     * @param type 网络类型Enum: bridge,bond,eth,alias,vlan,OVSBridge,OVSBond,OVSPort,OVSIntPort,unknown
+     * @return  网络接口列表
+     * @throws IOException e
+     */
+    public List<Network> getNetworkList(String nodeName, String type) throws IOException {
+        PveResult pveResult = pveClient.getNodes().get(nodeName)
+                .getNetwork().index(type);
+        return objectMapper.readValue(
+                pveResult.getResponse().getJSONArray("data").toString(),
+                new TypeReference<List<Network>>() {}
+        );
+    }
 
     /**
      * 删除备份

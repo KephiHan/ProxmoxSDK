@@ -7,8 +7,8 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VMStatus {
 
-    public static final String Statu_Running = "running";
-    public static final String Statu_Stopped = "stopped";
+    public static final String Status_Running = "running";
+    public static final String Status_Stopped = "stopped";
 
     private int vmid;
     private int cpus;

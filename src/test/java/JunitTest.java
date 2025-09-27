@@ -40,6 +40,16 @@ public class JunitTest {
     }
 
     @Test
+    public void getNetworkListTest() throws IOException {
+        List<Network> networkList = proxmoxClient.getNetworkList(nodename, "bridge");
+        System.out.println(
+                new ObjectMapper()
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(networkList)
+        );
+    }
+
+    @Test
     public void setVmMachineTypeTest() throws IOException {
         int vmid = 9666;
         boolean rst = proxmoxClient.setVmMachineType(
@@ -70,22 +80,22 @@ public class JunitTest {
 
     @Test
     public void restoreVmFromArchiveTest() throws IOException {
-        int vmid = 9477;
+        int vmid = 1001;
         String upid = proxmoxClient.restoreVm(
-                nodename,
+                "r730-216",
                 vmid,
-                "HDD-Raid5",
-                "NFS-R730-HDD:backup/vzdump-qemu-109-2025_08_21-21_47_48.vma.zst",
+                "NFS-R730-NVMe",
+                "NFS-R730-HDD:backup/vzdump-qemu-112-2025_09_07-03_18_39.vma.zst",
                 "DaBai-1" + vmid,
                 1,
                 4,
-                1024,
-                8192,
-                VMConfig.OsType_Linux26,
-                VMConfig.MachineType_q35_6_2,
-                "root",
+                null,
+                Math.round(16 * 1024),
+                "win11",
+                "pc-q35-7.2",
+                "Administrator",
                 "BayMax@201028",
-                "TestTestTest",
+                "创建时间: 20250923",
                 null,
                 true,
                 false,
@@ -868,12 +878,19 @@ public class JunitTest {
         );
     }
 
-//    @Test
-//    public void getUserRole() throws IOException {
-//        System.out.println(
-//                proxmoxClient.getUserRole("DABAIYUNUser")
-//        );
-//    }
+    @Test
+    public void setUserRoleTest() throws IOException {
+        List<String> privsList =    new ArrayList<>();
+        privsList.add(UserRole.VM.Audit.toString());
+        privsList.add(UserRole.VM.Config.CDROM.toString());
+        privsList.add(UserRole.VM.Console.toString());
+        privsList.add(UserRole.VM.PowerMgmt.toString());
+        boolean rst = proxmoxClient.createUserRole(
+                "DABAIYUNUser2",
+                privsList
+        );
+        System.out.println(rst);
+    }
 
     @Test
     public void getUserRoleList() throws IOException {
